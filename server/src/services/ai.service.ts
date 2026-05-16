@@ -1,5 +1,6 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
-import { env } from "../config/env";
+import { SchemaType, type ResponseSchema } from "@google/generative-ai";
+import { generateGeminiText, isGeminiConfigured } from "./gemini.service";
+import { HttpError } from "../utils/http-error";
 
 export interface NoteAiResult {
   summary: string;
@@ -31,12 +32,10 @@ function getMockNoteAiResult(input: GenerateNoteAiInput): NoteAiResult {
 }
 
 function parseGeminiJson(text: string): Omit<NoteAiResult, "usedMock"> {
-  const jsonText = text
-    .trim()
-    .replace(/^```json\s*/i, "")
-    .replace(/^```\s*/i, "")
-    .replace(/```$/i, "")
-    .trim();
+  const trimmedText = text.trim();
+  const fencedMatch = trimmedText.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  const unfencedMatch = trimmedText.match(/\{[\s\S]*\}/);
+  const jsonText = (fencedMatch?.[1] ?? unfencedMatch?.[0] ?? trimmedText).trim();
   const parsed = JSON.parse(jsonText) as {
     summary?: unknown;
     action_items?: unknown;
@@ -52,39 +51,105 @@ function parseGeminiJson(text: string): Omit<NoteAiResult, "usedMock"> {
     throw new Error("Gemini response did not match the expected note AI schema");
   }
 
-  return {
-    summary: parsed.summary,
-    action_items: parsed.action_items,
-    suggested_title: parsed.suggested_title
-  };
+  return normalizeNoteAiResult(parsed.summary, parsed.action_items, parsed.suggested_title);
 }
 
 export async function generateNoteAi(input: GenerateNoteAiInput): Promise<NoteAiResult> {
-  if (!env.geminiApiKey || env.geminiApiKey.startsWith("replace-with")) {
+  if (!isGeminiConfigured()) {
     return getMockNoteAiResult(input);
   }
 
   const prompt = `
-Generate note intelligence as strict JSON.
-Return only:
-{
-  "summary": "brief summary",
-  "action_items": ["task 1", "task 2"],
-  "suggested_title": "short title"
-}
+You are an assistant inside a productivity notes app.
+Generate useful note intelligence from the user's note.
+Return only valid JSON with:
+- "summary": a concise 1-3 sentence summary
+- "action_items": 0-5 concrete next steps as strings
+- "suggested_title": a clear short title
 
 Note title: ${input.title}
 Note content:
 ${input.content}
 `;
 
-  const genAI = new GoogleGenerativeAI(env.geminiApiKey);
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-  const result = await model.generateContent(prompt);
-  const parsed = parseGeminiJson(result.response.text());
+  let parsed: Omit<NoteAiResult, "usedMock">;
+
+  try {
+    parsed = parseGeminiJson(
+      await generateGeminiText(prompt, {
+        generationConfig: {
+          temperature: 0.2,
+          maxOutputTokens: 600
+        },
+        responseSchema: noteAiResponseSchema
+      })
+    );
+  } catch (error) {
+    if (shouldUseAiFallback(error)) {
+      console.warn(
+        error instanceof Error
+          ? `Gemini unavailable, using local AI fallback: ${error.message}`
+          : "Gemini unavailable, using local AI fallback"
+      );
+      return getMockNoteAiResult(input);
+    }
+
+    throw error;
+  }
 
   return {
     ...parsed,
     usedMock: false
+  };
+}
+
+function shouldUseAiFallback(error: unknown) {
+  if (error instanceof HttpError) {
+    return [429, 502].includes(error.statusCode);
+  }
+
+  return error instanceof Error;
+}
+
+const noteAiResponseSchema: ResponseSchema = {
+  type: SchemaType.OBJECT,
+  properties: {
+    summary: {
+      type: SchemaType.STRING
+    },
+    action_items: {
+      type: SchemaType.ARRAY,
+      items: {
+        type: SchemaType.STRING
+      }
+    },
+    suggested_title: {
+      type: SchemaType.STRING
+    }
+  },
+  required: ["summary", "action_items", "suggested_title"]
+};
+
+function normalizeNoteAiResult(
+  summary: unknown,
+  actionItems: unknown,
+  suggestedTitle: unknown
+): Omit<NoteAiResult, "usedMock"> {
+  if (
+    typeof summary !== "string" ||
+    !Array.isArray(actionItems) ||
+    actionItems.some((item) => typeof item !== "string") ||
+    typeof suggestedTitle !== "string"
+  ) {
+    throw new Error("Gemini response did not match the expected note AI schema");
+  }
+
+  return {
+    summary: summary.trim(),
+    action_items: actionItems
+      .map((item) => item.trim())
+      .filter((item) => item.length > 0)
+      .slice(0, 5),
+    suggested_title: suggestedTitle.trim()
   };
 }
