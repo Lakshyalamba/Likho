@@ -10,8 +10,16 @@ function requireString(value: unknown, field: string) {
   return value.trim();
 }
 
+function asRecord(value: unknown) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new HttpError(400, "Request body must be an object");
+  }
+
+  return value as Record<string, unknown>;
+}
+
 export function validateSignupBody(body: unknown) {
-  const payload = body as Record<string, unknown>;
+  const payload = asRecord(body);
   const name = requireString(payload.name, "Name");
   const email = requireString(payload.email, "Email").toLowerCase();
   const password = requireString(payload.password, "Password");
@@ -36,7 +44,7 @@ export function validateSignupBody(body: unknown) {
 }
 
 export function validateLoginBody(body: unknown) {
-  const payload = body as Record<string, unknown>;
+  const payload = asRecord(body);
   const email = requireString(payload.email, "Email").toLowerCase();
   const password = requireString(payload.password, "Password");
 

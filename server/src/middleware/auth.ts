@@ -16,7 +16,10 @@ export async function requireAuth(
     const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
 
     if (!token) {
-      res.status(401).json({ message: "Authentication token is required" });
+      res.status(401).json({
+        success: false,
+        message: "Authentication token is required"
+      });
       return;
     }
 
@@ -24,13 +27,19 @@ export async function requireAuth(
     const user = await UserModel.findById(payload.userId);
 
     if (!user) {
-      res.status(401).json({ message: "User not found" });
+      res.status(401).json({
+        success: false,
+        message: "User not found"
+      });
       return;
     }
 
     req.user = user;
     next();
   } catch {
-    res.status(401).json({ message: "Invalid or expired token" });
+    res.status(401).json({
+      success: false,
+      message: "Invalid or expired token"
+    });
   }
 }

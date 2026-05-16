@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import { env } from "../config/env";
 import { UserModel, type UserDocument } from "../models/user.model";
 import { HttpError } from "../utils/http-error";
 import { signToken } from "../utils/jwt";
@@ -44,6 +45,29 @@ export async function signupUser(input: {
     token: signToken(user),
     user: serializeUser(user)
   };
+}
+
+export async function ensureDemoUser() {
+  const email = env.demoUserEmail.toLowerCase();
+  const passwordHash = await bcrypt.hash(env.demoUserPassword, 12);
+
+  await UserModel.findOneAndUpdate(
+    { email },
+    {
+      $set: {
+        name: env.demoUserName,
+        email,
+        passwordHash
+      }
+    },
+    {
+      new: true,
+      upsert: true,
+      runValidators: true
+    }
+  ).exec();
+
+  console.log(`Demo account ready: ${email}`);
 }
 
 export async function loginUser(input: {

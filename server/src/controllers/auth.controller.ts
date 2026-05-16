@@ -19,7 +19,10 @@ export async function login(req: Request, res: Response) {
 
 export function me(req: AuthenticatedRequest, res: Response) {
   if (!req.user) {
-    res.status(401).json({ message: "Unauthorized" });
+    res.status(401).json({
+      success: false,
+      message: "Unauthorized"
+    });
     return;
   }
 
