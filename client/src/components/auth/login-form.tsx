@@ -6,6 +6,9 @@ import { AuthFormField } from "@/components/auth/auth-form-field";
 import { useAuth } from "@/contexts/auth-context";
 import { useToast } from "@/contexts/toast-context";
 
+const DEMO_EMAIL = "demo@peblo.local";
+const DEMO_PASSWORD = "demo1234";
+
 export function LoginForm() {
   const router = useRouter();
   const { login } = useAuth();
@@ -31,6 +34,17 @@ export function LoginForm() {
     } finally {
       setIsSubmitting(false);
     }
+  }
+
+  function handleUseDemoCredentials() {
+    setEmail(DEMO_EMAIL);
+    setPassword(DEMO_PASSWORD);
+    setError("");
+    showToast({
+      title: "Demo credentials filled",
+      description: "Click Sign in to open the demo workspace.",
+      type: "success"
+    });
   }
 
   return (
@@ -61,9 +75,18 @@ export function LoginForm() {
       ) : null}
 
       <button
+        type="button"
+        onClick={handleUseDemoCredentials}
+        disabled={isSubmitting}
+        className="flex h-10 w-full items-center justify-center rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-900 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:text-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:hover:bg-slate-900"
+      >
+        Use demo credentials
+      </button>
+
+      <button
         type="submit"
         disabled={isSubmitting}
-        className="w-full rounded-md bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400 dark:bg-slate-100 dark:text-slate-950 dark:hover:bg-white"
+        className="flex h-10 w-full items-center justify-center rounded-lg bg-slate-950 px-4 text-sm font-semibold text-white transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400 dark:bg-slate-100 dark:text-slate-950 dark:hover:bg-white"
       >
         {isSubmitting ? "Signing in..." : "Sign in"}
       </button>

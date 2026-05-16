@@ -19,17 +19,20 @@ export function AuthCard({
   children
 }: AuthCardProps) {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-10 dark:bg-slate-950 sm:px-6">
+    <main className="flex min-h-screen items-center justify-center bg-[#f6f5f2] px-4 py-10 dark:bg-slate-950 sm:px-6">
       <section className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <Link href="/" className="text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-            Peblo Notes
+          <Link href="/" className="text-sm font-semibold uppercase tracking-wide text-slate-500 transition-colors hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200">
+            Peblo AI Notes
           </Link>
           <h1 className="mt-4 text-3xl font-semibold tracking-normal text-slate-950 dark:text-white">{title}</h1>
           <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">{description}</p>
+          <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
+            Capture, summarize, and share your ideas.
+          </p>
         </div>
 
-        <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-8">
+        <div className="rounded-2xl border border-slate-200 bg-white/95 p-6 dark:border-slate-800 dark:bg-slate-900/95 sm:p-8">
           {children}
         </div>
 
