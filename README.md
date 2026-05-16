@@ -1,63 +1,59 @@
 # Peblo AI Notes
 
-Peblo AI Notes is a full-stack productivity notes application built for the Peblo Full Stack Developer Challenge. It combines secure JWT authentication, a modern notes workspace, AI-powered note assistance, public note sharing, and a productivity dashboard.
+Peblo AI Notes is a full-stack AI-powered notes workspace built for the Peblo Full Stack Developer Challenge. It combines secure authentication, a polished notes editor, AI-assisted note intelligence, public sharing, and productivity insights in a Next.js + Express + MongoDB application.
 
-## Features
+## Feature Checklist
 
-- User signup, login, logout, and protected routes
-- JWT authentication with session restore from `localStorage`
-- Notes CRUD with ownership checks
-- Debounced autosave for title, content, tags, and category
-- Search, tag filtering, archive support, and recently updated sorting
-- Gemini-powered AI note generation:
-  - summary
-  - action items
-  - suggested title
-- Safe mock AI response when `GEMINI_API_KEY` is missing
-- Public note sharing with share/unshare flow
-- Public reader route that does not require login
-- Productivity dashboard with:
-  - total notes
-  - archived notes
-  - AI usage count
-  - most used tags
-  - recently edited notes
-  - weekly activity chart
-- Dark mode
-- Toast notifications
-- Loading skeletons and polished empty/error states
-- Responsive SaaS-style UI
+- [x] Authentication: signup, login, protected routes, session restore
+- [x] Notes CRUD
+- [x] Debounced autosave
+- [x] Tags and categories
+- [x] Archive/unarchive
+- [x] Search, filter, sort, and paginated note lists
+- [x] AI summary generation
+- [x] AI action item extraction
+- [x] AI suggested title
+- [x] Mock AI fallback when Gemini key is missing or unavailable
+- [x] Public share/unshare flow
+- [x] Public reader page without login
+- [x] Productivity dashboard
+- [x] Dark mode
+- [x] Responsive UI
+- [x] Toasts, loading states, and empty states
 
 ## Tech Stack
 
-**Frontend**
+Frontend:
 - Next.js App Router
 - React
 - TypeScript
 - Tailwind CSS
 
-**Backend**
+Backend:
 - Node.js
-- Express.js
+- Express
 - TypeScript
 - MongoDB
 - Mongoose
 - JWT
 - bcrypt
 
-**AI**
-- Google Gemini API via `@google/generative-ai`
+AI:
+- Google Gemini API through `@google/generative-ai`
+- Deterministic local fallback for demos and offline development
 
-## Architecture Overview
+## Architecture
 
-The project is organized as an npm workspace with separate `client` and `server` apps.
+The repository is an npm workspace with two apps:
 
-- The Next.js client handles authentication screens, protected app routes, the notes workspace, public shared-note reader, dark mode, and dashboard UI.
-- The Express backend exposes REST APIs for authentication, notes, AI generation, sharing, and productivity insights.
+- `client` is the Next.js App Router frontend. It owns auth pages, protected app routes, the notes workspace, the public shared-note reader, theme state, toast notifications, and dashboard UI.
+- `server` is the Express REST API. It owns authentication, note ownership checks, AI generation, public sharing, and dashboard insight aggregation.
 - MongoDB stores users and notes.
-- JWT tokens protect user-specific APIs.
-- Notes are always queried by `userId` for ownership safety.
-- Gemini AI generation is abstracted behind an AI service. If no API key is available, the service returns a deterministic mock response for local development.
+- JWT protects private APIs. The token payload contains only safe user identifiers.
+- Notes are scoped by `userId` in every private note query so users cannot access another user’s notes.
+- AI generation is abstracted behind a service. The frontend never receives the Gemini API key.
+- Public notes are accessed by `shareId`, and only when `isPublic` is true.
+- Current collaboration is share-link based. Realtime multi-user editing is not included in this version, but the API can be extended with WebSockets, operational transforms, or CRDTs.
 
 ## Folder Structure
 
@@ -80,6 +76,8 @@ fullstack_challenge_lakshya/
         ui/
       contexts/
       lib/
+    next.config.ts
+    package.json
   server/
     src/
       config/
@@ -90,30 +88,39 @@ fullstack_challenge_lakshya/
       services/
       utils/
       validators/
-  README.md
+    package.json
+  docs/
+    API_EXAMPLES.md
+    DATABASE_SCHEMA.md
+    DEMO_SCRIPT.md
+    TESTING.md
+    screenshots/
   package.json
+  README.md
 ```
 
-## Environment Variables
+## Environment Setup
 
-Create environment files from the examples:
+Install dependencies from the repository root:
+
+```bash
+npm install
+```
+
+Create local env files:
 
 ```bash
 cp client/.env.example client/.env.local
 cp server/.env.example server/.env
 ```
 
-### Client
-
-`client/.env.local`
+Client env:
 
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:5000/api
 ```
 
-### Server
-
-`server/.env`
+Server env:
 
 ```env
 MONGO_URI=mongodb://127.0.0.1:27017/peblo_challenge
@@ -122,169 +129,282 @@ PORT=5000
 JWT_EXPIRES_IN=7d
 NODE_ENV=development
 CLIENT_URL=http://localhost:3000
-GEMINI_API_KEY=replace-with-your-gemini-api-key
+GEMINI_API_KEY=
+GEMINI_MODEL=gemini-2.0-flash
+DEMO_USER_NAME=Demo User
+DEMO_USER_EMAIL=demo@peblo.local
+DEMO_USER_PASSWORD=demo1234
 ```
 
-Do not commit real database passwords, JWT secrets, or API keys.
+`GEMINI_API_KEY` is optional. If it is blank, a placeholder, quota-limited, or unavailable, the backend returns a safe mock AI response so the demo still works.
 
-## Setup Instructions
+Never commit real database passwords, JWT secrets, Gemini API keys, or production credentials.
 
-Install dependencies from the project root:
+## Running Locally
 
-```bash
-npm install
-```
-
-Create the environment files:
-
-```bash
-cp client/.env.example client/.env.local
-cp server/.env.example server/.env
-```
-
-Update `server/.env` with your MongoDB URI and optional Gemini API key. The default URI expects a local MongoDB instance.
-
-## Running the App
-
-Run frontend and backend together:
+Run both apps:
 
 ```bash
 npm run dev
 ```
 
-Run only the frontend:
+Run the frontend only:
 
 ```bash
 npm run dev --workspace client
 ```
 
-Run only the backend:
+Run the backend only:
 
 ```bash
 npm run dev --workspace server
 ```
 
 Default URLs:
-
 - Frontend: `http://localhost:3000`
-- Backend: `http://localhost:5000`
+- Backend API: `http://localhost:5000/api`
 - Health check: `http://localhost:5000/api/health`
 
-## Build and Lint
+If local ports are busy, run the apps separately with alternate ports and update `NEXT_PUBLIC_API_URL` / `CLIENT_URL` accordingly.
 
-Build both apps:
-
-```bash
-npm run build
-```
-
-Lint both apps:
+## Build, Lint, and Test
 
 ```bash
 npm run lint
+npm run build
+npm run test
 ```
 
-## API Endpoints
+`npm run test` currently runs lightweight backend validator tests. Manual QA steps are documented in [docs/TESTING.md](docs/TESTING.md).
 
-### Health
+## API Documentation
 
-- `GET /api/health` - API health check
-
-### Authentication
-
-- `POST /api/auth/signup` - create user account
-- `POST /api/auth/login` - login and return JWT
-- `GET /api/auth/me` - get current user profile
-
-Protected auth format:
+Protected endpoints require:
 
 ```http
 Authorization: Bearer <token>
 ```
 
-### Notes
+Health:
+- `GET /api/health`
 
-- `GET /api/notes` - list current user's notes
-- `POST /api/notes` - create note
-- `GET /api/notes/:id` - get one owned note
-- `PATCH /api/notes/:id` - update one owned note
-- `DELETE /api/notes/:id` - delete one owned note
-- `PATCH /api/notes/:id/archive` - archive or unarchive one owned note
+Authentication:
+- `POST /api/auth/signup`
+- `POST /api/auth/login`
+- `GET /api/auth/me`
 
-Supported note list query params:
+Notes:
+- `GET /api/notes`
+- `POST /api/notes`
+- `GET /api/notes/:id`
+- `PATCH /api/notes/:id`
+- `DELETE /api/notes/:id`
+- `PATCH /api/notes/:id/archive`
+- `POST /api/notes/:id/generate-ai`
+- `POST /api/notes/:id/share`
+- `PATCH /api/notes/:id/unshare`
 
-- `search`
-- `tag`
-- `category`
-- `archived=true|false`
-- `sort=asc|desc`
+Public sharing:
+- `GET /api/shared/:shareId`
 
-### AI
+Insights:
+- `GET /api/insights`
 
-- `POST /api/notes/:id/generate-ai` - generate and store note AI fields
+`GET /api/notes` supports:
 
-Stores:
+```text
+search=roadmap
+tag=work
+category=Planning
+archived=true|false
+sort=asc|desc
+page=1
+limit=20
+```
 
-- `aiSummary`
-- `actionItems`
-- `suggestedTitle`
-- `aiUsageCount`
+See full request/response examples in [docs/API_EXAMPLES.md](docs/API_EXAMPLES.md).
 
-### Sharing
+## Database Design
 
-- `POST /api/notes/:id/share` - generate `shareId` and mark note public
-- `PATCH /api/notes/:id/unshare` - make note private
-- `GET /api/shared/:shareId` - public shared note reader data
-
-The public shared endpoint does not require authentication and only returns public notes.
-
-### Insights
-
-- `GET /api/insights` - productivity dashboard data
-
-Returns:
-
-- `totalNotes`
-- `archivedNotes`
-- `recentlyEditedNotes`
-- `mostUsedTags`
-- `aiUsageCount`
-- `weeklyActivitySummary`
-
-## AI Integration
-
-The backend uses a dedicated AI service for note intelligence generation. The service sends the selected note title and content to Gemini and asks for strict JSON containing:
+User:
 
 ```json
 {
-  "summary": "brief summary",
-  "action_items": ["task 1", "task 2"],
-  "suggested_title": "short title"
+  "_id": "ObjectId",
+  "name": "string",
+  "email": "string",
+  "passwordHash": "string",
+  "createdAt": "Date",
+  "updatedAt": "Date"
 }
 ```
 
-If `GEMINI_API_KEY` is missing or still set to the placeholder value, the backend returns a safe mock response. This keeps local development and demos working without requiring a real API key.
+Note:
+
+```json
+{
+  "_id": "ObjectId",
+  "userId": "ObjectId",
+  "title": "string",
+  "content": "string",
+  "tags": ["string"],
+  "category": "string",
+  "archived": false,
+  "isPublic": false,
+  "shareId": "string",
+  "aiSummary": "string",
+  "actionItems": ["string"],
+  "suggestedTitle": "string",
+  "aiUsageCount": 0,
+  "createdAt": "Date",
+  "updatedAt": "Date"
+}
+```
+
+Detailed schema and index notes are in [docs/DATABASE_SCHEMA.md](docs/DATABASE_SCHEMA.md).
+
+## Sample API Responses
+
+Signup/login:
+
+```json
+{
+  "token": "jwt-token",
+  "user": {
+    "id": "66f7e7f14b7f4e58f4d3a111",
+    "name": "Asha Sharma",
+    "email": "asha@example.com"
+  }
+}
+```
+
+Create note:
+
+```json
+{
+  "note": {
+    "id": "66f7e8a84b7f4e58f4d3a222",
+    "title": "Sprint planning",
+    "content": "Plan AI notes polish and demo recording.",
+    "tags": ["work", "demo"],
+    "category": "Planning",
+    "archived": false,
+    "isPublic": false,
+    "actionItems": [],
+    "aiUsageCount": 0,
+    "userId": "66f7e7f14b7f4e58f4d3a111",
+    "createdAt": "2026-05-16T10:00:00.000Z",
+    "updatedAt": "2026-05-16T10:00:00.000Z"
+  }
+}
+```
+
+Generate AI:
+
+```json
+{
+  "note": {
+    "id": "66f7e8a84b7f4e58f4d3a222",
+    "aiSummary": "The note captures the remaining polish tasks before the Peblo demo.",
+    "actionItems": ["Finalize README", "Record demo video"],
+    "suggestedTitle": "Peblo demo polish",
+    "aiUsageCount": 1
+  },
+  "ai": {
+    "summary": "The note captures the remaining polish tasks before the Peblo demo.",
+    "action_items": ["Finalize README", "Record demo video"],
+    "suggested_title": "Peblo demo polish",
+    "usedMock": false
+  }
+}
+```
+
+Insights:
+
+```json
+{
+  "totalNotes": 12,
+  "archivedNotes": 2,
+  "aiUsageCount": 5,
+  "mostUsedTags": [{ "tag": "work", "count": 4 }],
+  "recentlyEditedNotes": [],
+  "weeklyActivitySummary": []
+}
+```
+
+Public shared note:
+
+```json
+{
+  "note": {
+    "id": "66f7e8a84b7f4e58f4d3a222",
+    "title": "Sprint planning",
+    "content": "Plan AI notes polish and demo recording.",
+    "tags": ["work", "demo"],
+    "category": "Planning",
+    "shareId": "f4c67e5d-8c4d-4f39-a47d-94fb0d96b982",
+    "aiSummary": "The note captures the remaining polish tasks before the Peblo demo.",
+    "actionItems": ["Finalize README", "Record demo video"],
+    "suggestedTitle": "Peblo demo polish",
+    "createdAt": "2026-05-16T10:00:00.000Z",
+    "updatedAt": "2026-05-16T10:05:00.000Z"
+  }
+}
+```
+
+## Sample AI Output
+
+```json
+{
+  "summary": "This note outlines the final work needed before submitting the Peblo challenge.",
+  "action_items": ["Update documentation", "Record the demo walkthrough", "Verify public sharing"],
+  "suggested_title": "Peblo submission checklist"
+}
+```
 
 ## Screenshots
 
-Add screenshots here:
+Screenshot files are not included yet. The folder is prepared at `docs/screenshots/`.
 
-- Landing page
-- Login/signup
-- Notes workspace
-- AI assistant panel
-- Public shared note page
-- Productivity dashboard
-- Dark mode
+Screenshot TODO checklist:
+- [ ] Landing page
+- [ ] Login/signup
+- [ ] Notes workspace
+- [ ] AI assistant panel
+- [ ] Public shared note page
+- [ ] Dashboard
+- [ ] Dark mode
+
+## Demo Video
+
+Use [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md) for a 5-10 minute walkthrough covering the product, API, and architecture.
+
+## Keyboard Shortcuts
+
+- `Cmd/Ctrl + K`: focus note search in the workspace
+
+## Collaboration Scope
+
+This version supports collaboration through public share links. A note owner can share or unshare a read-only public URL. Realtime multi-user editing is not included, but the current ownership model, note API, and share identifiers can be extended with WebSockets or CRDTs.
+
+## Submission Checklist
+
+- [ ] GitHub repository is accessible/public
+- [x] No real secrets are committed
+- [x] Env examples are present
+- [x] Clean clone can run locally with MongoDB and env files
+- [x] Frontend and backend are integrated
+- [ ] Demo video is recorded
+- [x] Sample outputs are included
+- [ ] Real screenshots are added
+- [x] Build/lint/test commands are documented
+- [ ] Deployment links are added if deployed
 
 ## Future Improvements
 
-- Add pagination for large note collections
-- Add rich text or Markdown editing
-- Add note restore flow for archived notes
-- Add delete confirmation and undo actions
-- Add collaborative sharing permissions
-- Add user-level AI usage limits
-- Add automated tests for API and UI flows
-- Add deployment configuration for Vercel/Render/Railway
-- Add refresh-token based auth for production-grade sessions
+- Realtime collaborative editing
+- Rich text or Markdown preview mode
+- Role-based sharing permissions
+- User-level AI usage limits
+- Full integration tests with a test database
+- Deployment configuration for Vercel plus Render/Railway
