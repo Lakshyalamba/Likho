@@ -30,9 +30,9 @@ function getAuthenticatedUserId(req: AuthenticatedRequest) {
 export async function getNotes(req: AuthenticatedRequest, res: Response) {
   const userId = getAuthenticatedUserId(req);
   const query = validateNoteListQuery(req.query);
-  const notes = await listNotes(userId, query);
+  const result = await listNotes(userId, query);
 
-  res.json({ notes });
+  res.json(result);
 }
 
 export async function postNote(req: AuthenticatedRequest, res: Response) {

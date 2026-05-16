@@ -84,6 +84,7 @@ const noteSchema = new Schema<NoteDocument>(
 );
 
 noteSchema.index({ userId: 1, updatedAt: -1 });
+noteSchema.index({ userId: 1, archived: 1 });
 noteSchema.index({ userId: 1, tags: 1 });
 noteSchema.index({ userId: 1, category: 1 });
 

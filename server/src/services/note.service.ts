@@ -80,11 +80,27 @@ function buildOwnedNoteFilter(userId: string, query?: NoteListQuery) {
 }
 
 export async function listNotes(userId: string, query: NoteListQuery) {
-  const notes = await NoteModel.find(buildOwnedNoteFilter(userId, query))
+  const page = query.page ?? 1;
+  const limit = query.limit ?? 20;
+  const filter = buildOwnedNoteFilter(userId, query);
+  const [notes, total] = await Promise.all([
+    NoteModel.find(filter)
     .sort({ updatedAt: query.sort ?? -1 })
-    .exec();
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .exec(),
+    NoteModel.countDocuments(filter)
+  ]);
 
-  return notes.map(serializeNote);
+  return {
+    notes: notes.map(serializeNote),
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.max(1, Math.ceil(total / limit))
+    }
+  };
 }
 
 export async function createNote(userId: string, input: CreateNoteInput) {
