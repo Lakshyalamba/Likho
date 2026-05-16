@@ -7,6 +7,8 @@ export interface NoteListQuery {
   category?: string;
   archived?: boolean;
   sort?: 1 | -1;
+  page?: number;
+  limit?: number;
 }
 
 export interface CreateNoteInput {
@@ -68,7 +70,11 @@ function optionalStringArray(value: unknown, field: string) {
   }
 
   return Array.from(
-    new Set(value.map((item) => item.trim()).filter((item) => item.length > 0))
+    new Set(
+      value
+        .map((item) => item.trim().toLowerCase())
+        .filter((item) => item.length > 0)
+    )
   );
 }
 
@@ -82,6 +88,27 @@ function optionalBoolean(value: unknown, field: string) {
   }
 
   return value;
+}
+
+function optionalPositiveInteger(value: unknown, field: string, max?: number) {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  const rawValue = Array.isArray(value) ? value[0] : value;
+  const parsed = typeof rawValue === "string" ? Number(rawValue) : rawValue;
+
+  if (!Number.isInteger(parsed) || Number(parsed) <= 0) {
+    throw new HttpError(400, `${field} must be a positive integer`);
+  }
+
+  const numberValue = Number(parsed);
+
+  if (max !== undefined && numberValue > max) {
+    throw new HttpError(400, `${field} must be ${max} or less`);
+  }
+
+  return numberValue;
 }
 
 export function validateNoteId(id: string) {
@@ -139,6 +166,8 @@ export function validateNoteListQuery(query: Record<string, unknown>): NoteListQ
   const category = optionalString(query.category, "Category");
   const archivedValue = optionalString(query.archived, "Archived");
   const sortValue = optionalString(query.sort, "Sort");
+  const page = optionalPositiveInteger(query.page, "Page");
+  const limit = optionalPositiveInteger(query.limit, "Limit", 100);
 
   let archived: boolean | undefined;
 
@@ -165,6 +194,8 @@ export function validateNoteListQuery(query: Record<string, unknown>): NoteListQ
     tag,
     category,
     archived,
-    sort
+    sort,
+    page: page ?? 1,
+    limit: limit ?? 20
   };
 }
