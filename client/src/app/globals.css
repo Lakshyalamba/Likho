@@ -13,9 +13,22 @@
 body {
   background: #f8fafc;
   color: #0f172a;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 .dark body {
   background: #020617;
   color: #e2e8f0;
+}
+
+::selection {
+  background: #cbd5e1;
+  color: #0f172a;
+}
+
+.dark ::selection {
+  background: #475569;
+  color: #f8fafc;
 }

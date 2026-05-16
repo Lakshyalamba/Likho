@@ -35,8 +35,8 @@ export function SharedNoteReader({ shareId }: { shareId: string }) {
 
   if (isLoading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4 dark:bg-slate-950">
-        <div className="grid w-full max-w-2xl gap-4 rounded-lg border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <main className="flex min-h-screen items-center justify-center bg-[#f6f5f2] px-4 dark:bg-slate-950">
+        <div className="grid w-full max-w-2xl gap-4 rounded-2xl border border-slate-200 bg-white/95 p-6 dark:border-slate-800 dark:bg-slate-900">
           <Skeleton className="h-4 w-28" />
           <Skeleton className="h-10 w-3/4" />
           <Skeleton className="h-4 w-full" />
@@ -48,15 +48,17 @@ export function SharedNoteReader({ shareId }: { shareId: string }) {
 
   if (error || !note) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-10 dark:bg-slate-950">
-        <section className="w-full max-w-md rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 text-center shadow-sm">
+      <main className="flex min-h-screen items-center justify-center bg-[#f6f5f2] px-4 py-10 dark:bg-slate-950">
+        <section className="w-full max-w-md rounded-2xl border border-slate-200 bg-white/95 p-6 text-center dark:border-slate-800 dark:bg-slate-900">
           <p className="text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
             Peblo Notes
           </p>
           <h1 className="mt-3 text-2xl font-semibold tracking-normal text-slate-950 dark:text-slate-50">
-            Shared note unavailable
+            This note is not available
           </h1>
-          <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">{error}</p>
+          <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
+            It may have been made private or the link is incorrect.
+          </p>
           <Link
             href="/"
             className="mt-6 inline-flex rounded-md bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-950 dark:hover:bg-white"
@@ -69,14 +71,14 @@ export function SharedNoteReader({ shareId }: { shareId: string }) {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-8 dark:bg-slate-950 sm:px-6 lg:py-12">
-      <article className="mx-auto max-w-3xl rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
-        <header className="border-b border-slate-200 dark:border-slate-800 px-5 py-6 sm:px-8 sm:py-8">
+    <main className="min-h-screen bg-[#f6f5f2] px-4 py-8 dark:bg-slate-950 sm:px-6 lg:py-12">
+      <article className="mx-auto max-w-[760px] rounded-2xl border border-slate-200 bg-white/95 dark:border-slate-800 dark:bg-slate-900">
+        <header className="border-b border-slate-200 px-5 py-8 dark:border-slate-800 sm:px-10 sm:py-10">
           <Link
             href="/"
-            className="text-xs font-semibold uppercase tracking-wide text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
+            className="text-xs font-semibold uppercase tracking-wide text-slate-500 transition-colors hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
           >
-            Peblo Notes
+            Shared via Peblo AI Notes
           </Link>
           <h1 className="mt-4 text-3xl font-semibold tracking-normal text-slate-950 dark:text-slate-50 sm:text-4xl">
             {note.title}
@@ -99,10 +101,47 @@ export function SharedNoteReader({ shareId }: { shareId: string }) {
           ) : null}
         </header>
 
-        <div className="px-5 py-6 sm:px-8 sm:py-8">
-          <div className="whitespace-pre-wrap text-base leading-8 text-slate-800">
+        <div className="px-5 py-8 sm:px-10 sm:py-10">
+          <div className="whitespace-pre-wrap text-base leading-8 text-slate-800 dark:text-slate-100">
             {note.content || "This shared note is empty."}
           </div>
+
+          {note.aiSummary || note.actionItems.length > 0 || note.suggestedTitle ? (
+            <section className="mt-8 border-t border-slate-200 pt-6 dark:border-slate-800">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                AI note intelligence
+              </h2>
+
+              {note.aiSummary ? (
+                <div className="mt-4 rounded-md border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                    Summary
+                  </p>
+                  <p className="mt-2 text-sm leading-6 text-slate-700 dark:text-slate-200">
+                    {note.aiSummary}
+                  </p>
+                </div>
+              ) : null}
+
+              {note.actionItems.length > 0 ? (
+                <div className="mt-4 rounded-md border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                    Action items
+                  </p>
+                  <ul className="mt-3 grid gap-2">
+                    {note.actionItems.map((item) => (
+                      <li
+                        key={item}
+                        className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm leading-5 text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
+                      >
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+            </section>
+          ) : null}
         </div>
       </article>
     </main>
