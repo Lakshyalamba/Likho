@@ -23,6 +23,8 @@ export interface NoteListParams {
   tag?: string;
   archived?: boolean;
   sort?: "asc" | "desc";
+  page?: number;
+  limit?: number;
 }
 
 export interface NotePayload {
@@ -30,6 +32,18 @@ export interface NotePayload {
   content: string;
   tags: string[];
   category: string;
+}
+
+export interface PaginationMeta {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface NoteListResponse {
+  notes: Note[];
+  pagination?: PaginationMeta;
 }
 
 export interface NoteAiResponse {
@@ -63,17 +77,17 @@ function buildQuery(params: NoteListParams) {
   if (params.tag) query.set("tag", params.tag);
   if (params.archived !== undefined) query.set("archived", String(params.archived));
   if (params.sort) query.set("sort", params.sort);
+  if (params.page) query.set("page", String(params.page));
+  if (params.limit) query.set("limit", String(params.limit));
 
   const queryString = query.toString();
   return queryString ? `?${queryString}` : "";
 }
 
 export async function getNotes(token: string, params: NoteListParams) {
-  const response = await apiRequest<{ notes: Note[] }>(`/notes${buildQuery(params)}`, {
+  return apiRequest<NoteListResponse>(`/notes${buildQuery(params)}`, {
     token
   });
-
-  return response.notes;
 }
 
 export async function createNote(token: string) {
@@ -101,11 +115,26 @@ export async function updateNote(token: string, noteId: string, payload: NotePay
   return response.note;
 }
 
+export async function deleteNote(token: string, noteId: string) {
+  await apiRequest<void>(`/notes/${noteId}`, {
+    method: "DELETE",
+    token
+  });
+}
+
 export async function archiveNote(token: string, noteId: string) {
+  return setNoteArchived(token, noteId, true);
+}
+
+export async function unarchiveNote(token: string, noteId: string) {
+  return setNoteArchived(token, noteId, false);
+}
+
+async function setNoteArchived(token: string, noteId: string, archived: boolean) {
   const response = await apiRequest<{ note: Note }>(`/notes/${noteId}/archive`, {
     method: "PATCH",
     token,
-    body: JSON.stringify({ archived: true })
+    body: JSON.stringify({ archived })
   });
 
   return response.note;
