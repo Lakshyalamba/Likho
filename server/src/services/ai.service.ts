@@ -1,5 +1,6 @@
 import { SchemaType, type ResponseSchema } from "@google/generative-ai";
 import { generateGeminiText, isGeminiConfigured } from "./gemini.service";
+import { generateNvidiaText, isNvidiaConfigured } from "./nvidia.service";
 import { HttpError } from "../utils/http-error";
 
 export interface NoteAiResult {
@@ -54,12 +55,8 @@ function parseGeminiJson(text: string): Omit<NoteAiResult, "usedMock"> {
   return normalizeNoteAiResult(parsed.summary, parsed.action_items, parsed.suggested_title);
 }
 
-export async function generateNoteAi(input: GenerateNoteAiInput): Promise<NoteAiResult> {
-  if (!isGeminiConfigured()) {
-    return getMockNoteAiResult(input);
-  }
-
-  const prompt = `
+function buildNoteAiPrompt(input: GenerateNoteAiInput) {
+  return `
 You are an assistant inside a productivity notes app.
 Generate useful note intelligence from the user's note.
 Return only valid JSON with:
@@ -71,36 +68,74 @@ Note title: ${input.title}
 Note content:
 ${input.content}
 `;
+}
 
-  let parsed: Omit<NoteAiResult, "usedMock">;
+export async function generateNoteAi(input: GenerateNoteAiInput): Promise<NoteAiResult> {
+  const prompt = buildNoteAiPrompt(input);
+  const providerErrors: string[] = [];
 
-  try {
-    parsed = parseGeminiJson(
-      await generateGeminiText(prompt, {
-        generationConfig: {
-          temperature: 0.2,
-          maxOutputTokens: 600
-        },
-        responseSchema: noteAiResponseSchema
-      })
-    );
-  } catch (error) {
-    if (shouldUseAiFallback(error)) {
+  if (isGeminiConfigured()) {
+    try {
+      const parsed = parseGeminiJson(
+        await generateGeminiText(prompt, {
+          generationConfig: {
+            temperature: 0.2,
+            maxOutputTokens: 600
+          },
+          responseSchema: noteAiResponseSchema
+        })
+      );
+
+      return {
+        ...parsed,
+        usedMock: false
+      };
+    } catch (error) {
+      if (!shouldUseAiFallback(error)) {
+        throw error;
+      }
+
+      providerErrors.push(formatProviderError("Gemini", error));
       console.warn(
         error instanceof Error
-          ? `Gemini unavailable, using local AI fallback: ${error.message}`
-          : "Gemini unavailable, using local AI fallback"
+          ? `Gemini unavailable, trying NVIDIA fallback: ${error.message}`
+          : "Gemini unavailable, trying NVIDIA fallback"
       );
-      return getMockNoteAiResult(input);
     }
-
-    throw error;
   }
 
-  return {
-    ...parsed,
-    usedMock: false
-  };
+  if (isNvidiaConfigured()) {
+    try {
+      const parsed = parseGeminiJson(
+        await generateNvidiaText(prompt, {
+          temperature: 0.2,
+          maxTokens: 600
+        })
+      );
+
+      return {
+        ...parsed,
+        usedMock: false
+      };
+    } catch (error) {
+      if (!shouldUseAiFallback(error)) {
+        throw error;
+      }
+
+      providerErrors.push(formatProviderError("NVIDIA", error));
+      console.warn(
+        error instanceof Error
+          ? `NVIDIA AI unavailable, using local AI fallback: ${error.message}`
+          : "NVIDIA AI unavailable, using local AI fallback"
+      );
+    }
+  }
+
+  if (providerErrors.length > 0) {
+    console.warn(`Using local AI fallback after provider failures: ${providerErrors.join("; ")}`);
+  }
+
+  return getMockNoteAiResult(input);
 }
 
 function shouldUseAiFallback(error: unknown) {
@@ -109,6 +144,10 @@ function shouldUseAiFallback(error: unknown) {
   }
 
   return error instanceof Error;
+}
+
+function formatProviderError(provider: string, error: unknown) {
+  return error instanceof Error ? `${provider}: ${error.message}` : `${provider}: unknown error`;
 }
 
 const noteAiResponseSchema: ResponseSchema = {

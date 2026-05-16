@@ -48,6 +48,7 @@ AI:
 - [ ] Leave `GEMINI_API_KEY` blank and generate AI.
 - [ ] Confirm fallback summary/action items/title appear.
 - [ ] Add a valid Gemini key with quota and generate AI.
+- [ ] Add `NVIDIA_API_KEY` and confirm it is used when Gemini quota is exceeded.
 - [ ] Confirm `usedMock` behavior via API or toast messaging.
 
 Sharing:

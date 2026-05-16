@@ -131,14 +131,17 @@ NODE_ENV=development
 CLIENT_URL=http://localhost:3000
 GEMINI_API_KEY=
 GEMINI_MODEL=gemini-2.0-flash
+NVIDIA_API_KEY=
+NVIDIA_BASE_URL=https://integrate.api.nvidia.com/v1
+NVIDIA_MODEL=meta/llama-3.1-8b-instruct
 DEMO_USER_NAME=Demo User
 DEMO_USER_EMAIL=demo@peblo.local
 DEMO_USER_PASSWORD=demo1234
 ```
 
-`GEMINI_API_KEY` is optional. If it is blank, a placeholder, quota-limited, or unavailable, the backend returns a safe mock AI response so the demo still works.
+`GEMINI_API_KEY` is optional. If Gemini is blank, quota-limited, or unavailable, the backend can use `NVIDIA_API_KEY` as an OpenAI-compatible fallback provider. If both providers are missing or unavailable, the backend returns a safe mock AI response so the demo still works.
 
-Never commit real database passwords, JWT secrets, Gemini API keys, or production credentials.
+Never commit real database passwords, JWT secrets, Gemini API keys, NVIDIA API keys, or production credentials.
 
 ## Running Locally
 

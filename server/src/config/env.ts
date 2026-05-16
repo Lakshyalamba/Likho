@@ -65,6 +65,9 @@ export const env = {
   jwtExpiresIn: process.env.JWT_EXPIRES_IN?.trim() || "7d",
   geminiApiKey: process.env.GEMINI_API_KEY ?? "",
   geminiModel: process.env.GEMINI_MODEL ?? "gemini-2.0-flash",
+  nvidiaApiKey: process.env.NVIDIA_API_KEY ?? "",
+  nvidiaBaseUrl: process.env.NVIDIA_BASE_URL ?? "https://integrate.api.nvidia.com/v1",
+  nvidiaModel: process.env.NVIDIA_MODEL ?? "meta/llama-3.1-8b-instruct",
   demoUserName: process.env.DEMO_USER_NAME ?? "Demo User",
   demoUserEmail: process.env.DEMO_USER_EMAIL ?? "demo@peblo.local",
   demoUserPassword: process.env.DEMO_USER_PASSWORD ?? "demo1234"
