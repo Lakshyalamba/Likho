@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { AppHeader } from "@/components/app/app-header";
+import { AppShell } from "@/components/app/app-shell";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   getProductivityInsights,
@@ -87,15 +87,14 @@ export function ProductivityDashboard({
 
   if (isLoading) {
     return (
-      <main className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-950 dark:text-slate-50">
-        <AppHeader userName={userName} onLogout={onLogout} />
-        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <AppShell userName={userName} onLogout={onLogout}>
+        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
           <div className="grid gap-6">
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
               {Array.from({ length: 4 }).map((_, index) => (
                 <div
                   key={index}
-                  className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900"
+                  className="rounded-2xl border border-slate-200 bg-white/90 p-5 dark:border-slate-800 dark:bg-slate-900"
                 >
                   <Skeleton className="h-4 w-24" />
                   <Skeleton className="mt-4 h-8 w-20" />
@@ -105,20 +104,19 @@ export function ProductivityDashboard({
             <Skeleton className="h-72 w-full" />
           </div>
         </div>
-      </main>
+      </AppShell>
     );
   }
 
   if (error || !insights) {
     return (
-      <main className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-950 dark:text-slate-50">
-        <AppHeader userName={userName} onLogout={onLogout} />
-        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-          <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-200">
+      <AppShell userName={userName} onLogout={onLogout}>
+        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+          <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-200">
             {error || "Unable to load dashboard"}
           </div>
         </div>
-      </main>
+      </AppShell>
     );
   }
 
@@ -130,22 +128,23 @@ export function ProductivityDashboard({
   ];
 
   return (
-    <main className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-950 dark:text-slate-50">
-      <AppHeader userName={userName} onLogout={onLogout} />
-
-      <section className="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
+    <AppShell userName={userName} onLogout={onLogout}>
+      <section className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-sm font-medium uppercase tracking-wide text-slate-500">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
               Productivity dashboard
             </p>
-            <h1 className="mt-2 text-3xl font-semibold tracking-normal text-slate-950 dark:text-slate-50">
+            <h1 className="mt-2 text-3xl font-semibold tracking-normal text-slate-950 dark:text-slate-50 sm:text-4xl">
               Your note activity at a glance
             </h1>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-300">
+              Track writing momentum, AI usage, and the notes that changed recently.
+            </p>
           </div>
           <Link
             href="/notes"
-            className="rounded-md bg-slate-950 px-4 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-950 dark:hover:bg-white"
+            className="flex h-10 items-center justify-center rounded-lg bg-slate-950 px-4 text-center text-sm font-semibold text-white transition-colors hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400 dark:bg-slate-100 dark:text-slate-950 dark:hover:bg-white"
           >
             Open notes
           </Link>
@@ -153,8 +152,8 @@ export function ProductivityDashboard({
 
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {cards.map((card) => (
-            <div key={card.label} className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm">
-              <p className="text-sm font-medium text-slate-500">{card.label}</p>
+            <div key={card.label} className="rounded-2xl border border-slate-200 bg-white/90 p-5 dark:border-slate-800 dark:bg-slate-900">
+              <p className="text-sm font-medium text-slate-500 dark:text-slate-400">{card.label}</p>
               <p className="mt-3 text-3xl font-semibold tracking-normal text-slate-950 dark:text-slate-50">
                 {card.value}
               </p>
@@ -166,7 +165,7 @@ export function ProductivityDashboard({
         </div>
 
         <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
-          <section className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm">
+          <section className="rounded-2xl border border-slate-200 bg-white/90 p-5 dark:border-slate-800 dark:bg-slate-900 sm:p-6">
             <div className="mb-4 flex flex-col gap-1">
               <h2 className="text-lg font-semibold text-slate-950 dark:text-slate-50">Weekly activity</h2>
               <p className="text-sm text-slate-600 dark:text-slate-300">Created and updated notes grouped by day.</p>
@@ -174,7 +173,7 @@ export function ProductivityDashboard({
             <ActivityChart days={insights.weeklyActivitySummary} />
           </section>
 
-          <section className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm">
+          <section className="rounded-2xl border border-slate-200 bg-white/90 p-5 dark:border-slate-800 dark:bg-slate-900 sm:p-6">
             <div className="mb-4 flex items-center justify-between gap-4">
               <div>
                 <h2 className="text-lg font-semibold text-slate-950 dark:text-slate-50">Most used tags</h2>
@@ -199,7 +198,7 @@ export function ProductivityDashboard({
           </section>
         </div>
 
-        <section className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm">
+        <section className="rounded-2xl border border-slate-200 bg-white/90 p-5 dark:border-slate-800 dark:bg-slate-900 sm:p-6">
           <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 className="text-lg font-semibold text-slate-950 dark:text-slate-50">Recently edited notes</h2>
@@ -260,6 +259,6 @@ export function ProductivityDashboard({
           )}
         </section>
       </section>
-    </main>
+    </AppShell>
   );
 }
