@@ -8,7 +8,7 @@ Introduce Peblo AI Notes as a full-stack AI-powered notes workspace built for th
 
 Mention the stack:
 - Next.js, React, TypeScript, Tailwind
-- Express, TypeScript, MongoDB, Mongoose
+- Express, TypeScript, PostgreSQL, Prisma
 - JWT auth
 - Gemini with local fallback
 
@@ -94,7 +94,7 @@ Briefly explain:
 - notes are scoped by `userId`
 - public reads use `shareId` and `isPublic`
 - AI calls stay on the backend
-- MongoDB stores users and notes
+- PostgreSQL stores users and notes through Prisma
 
 ## 10. Closing
 

@@ -14,10 +14,12 @@ Current automated tests cover backend auth and note validators.
 
 ## Manual QA Checklist
 
-- [ ] Start MongoDB locally.
+- [ ] Start PostgreSQL locally or with Docker.
 - [ ] Copy `client/.env.example` to `client/.env.local`.
 - [ ] Copy `server/.env.example` to `server/.env`.
 - [ ] Run `npm install`.
+- [ ] Run `npm run prisma:generate --workspace server`.
+- [ ] Run `npm run prisma:migrate --workspace server`.
 - [ ] Run `npm run dev`.
 - [ ] Open `http://localhost:3000`.
 

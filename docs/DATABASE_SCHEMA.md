@@ -1,26 +1,31 @@
 # Database Schema
 
-MongoDB is accessed through Mongoose models in `server/src/models`.
+PostgreSQL is accessed through Prisma. The source of truth is `server/prisma/schema.prisma`, and migrations live in `server/prisma/migrations`.
 
 ## User
 
-Source: `server/src/models/user.model.ts`
+Source: `server/prisma/schema.prisma`
 
-```ts
-{
-  name: string;
-  email: string;
-  passwordHash: string;
-  createdAt: Date;
-  updatedAt: Date;
+```prisma
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  notes        Note[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([email])
 }
 ```
 
 Fields:
-- `name`: required, trimmed display name.
-- `email`: required, unique, lowercased, trimmed login identifier.
-- `passwordHash`: required bcrypt hash, excluded from query results by default with `select: false`.
-- `createdAt` / `updatedAt`: managed by Mongoose timestamps.
+- `id`: Prisma cuid primary key.
+- `name`: required display name.
+- `email`: required unique lowercased login identifier.
+- `passwordHash`: required bcrypt hash.
+- `createdAt` / `updatedAt`: managed by Prisma defaults.
 
 Security notes:
 - Plain text passwords are never stored.
@@ -29,53 +34,35 @@ Security notes:
 
 ## Note
 
-Source: `server/src/models/note.model.ts`
+Source: `server/prisma/schema.prisma`
 
-```ts
-{
-  title: string;
-  content: string;
-  tags: string[];
-  category: string;
-  archived: boolean;
-  isPublic: boolean;
-  shareId?: string;
-  aiSummary?: string;
-  actionItems: string[];
-  suggestedTitle?: string;
-  aiUsageCount: number;
-  userId: ObjectId;
-  createdAt: Date;
-  updatedAt: Date;
+```prisma
+model Note {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title          String
+  content        String   @default("")
+  tags           String[] @default([])
+  category       String   @default("General")
+  archived       Boolean  @default(false)
+  isPublic       Boolean  @default(false)
+  shareId        String?  @unique
+  aiSummary      String?
+  actionItems    String[] @default([])
+  suggestedTitle String?
+  aiUsageCount   Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([userId])
+  @@index([userId, updatedAt])
+  @@index([userId, archived])
+  @@index([userId, category])
 }
 ```
 
-Fields:
-- `title`: required, trimmed.
-- `content`: note body, defaults to an empty string.
-- `tags`: normalized string array from API validators.
-- `category`: trimmed category label, defaults to `General`.
-- `archived`: controls active vs archived note views.
-- `isPublic`: controls whether the public shared endpoint can return the note.
-- `shareId`: random UUID, unique and sparse.
-- `aiSummary`: latest generated summary.
-- `actionItems`: latest generated action items.
-- `suggestedTitle`: latest AI title suggestion.
-- `aiUsageCount`: increments every time AI generation runs.
-- `userId`: required owner reference.
-- `createdAt` / `updatedAt`: managed by Mongoose timestamps.
-
-Indexes:
-
-```ts
-noteSchema.index({ userId: 1, updatedAt: -1 });
-noteSchema.index({ userId: 1, archived: 1 });
-noteSchema.index({ userId: 1, tags: 1 });
-noteSchema.index({ userId: 1, category: 1 });
-shareId: { unique: true, sparse: true }
-```
-
 Ownership model:
-- Every private note operation filters by both `_id` and `userId`.
+- Every private note operation filters by both `id` and `userId`, or verifies ownership before mutating by `id`.
 - Public reads use only `shareId` plus `isPublic: true`.
 - Public serialization omits `userId`, `archived`, `isPublic`, and `aiUsageCount`.
