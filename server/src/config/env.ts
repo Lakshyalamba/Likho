@@ -2,7 +2,8 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const DEFAULT_MONGO_URI = "mongodb://127.0.0.1:27017/peblo_challenge";
+const DEFAULT_DATABASE_URL =
+  "postgresql://postgres:password@localhost:5432/peblo_notes?schema=public";
 const DEFAULT_JWT_SECRET = "development-only-secret";
 const DEFAULT_CLIENT_URL = "http://localhost:3000";
 
@@ -45,14 +46,16 @@ function assertProductionSecret(name: string, value: string, unsafeValue: string
 }
 
 const nodeEnv = process.env.NODE_ENV ?? "development";
-const mongoUri = readString("MONGO_URI", DEFAULT_MONGO_URI);
+const databaseUrl = readString("DATABASE_URL", DEFAULT_DATABASE_URL);
 const jwtSecret = readString("JWT_SECRET", DEFAULT_JWT_SECRET);
 const clientUrl = readString("CLIENT_URL", DEFAULT_CLIENT_URL);
 
-warnWhenUsingDevelopmentDefault("MONGO_URI", mongoUri, DEFAULT_MONGO_URI);
+process.env.DATABASE_URL = databaseUrl;
+
+warnWhenUsingDevelopmentDefault("DATABASE_URL", databaseUrl, DEFAULT_DATABASE_URL);
 warnWhenUsingDevelopmentDefault("JWT_SECRET", jwtSecret, DEFAULT_JWT_SECRET);
 warnWhenUsingDevelopmentDefault("CLIENT_URL", clientUrl, DEFAULT_CLIENT_URL);
-assertProductionSecret("MONGO_URI", mongoUri, DEFAULT_MONGO_URI);
+assertProductionSecret("DATABASE_URL", databaseUrl, DEFAULT_DATABASE_URL);
 assertProductionSecret("JWT_SECRET", jwtSecret, DEFAULT_JWT_SECRET);
 assertProductionSecret("CLIENT_URL", clientUrl, DEFAULT_CLIENT_URL);
 
@@ -60,7 +63,7 @@ export const env = {
   port: readNumber("PORT", 5000),
   nodeEnv,
   clientUrl,
-  mongoUri,
+  databaseUrl,
   jwtSecret,
   jwtExpiresIn: process.env.JWT_EXPIRES_IN?.trim() || "7d",
   geminiApiKey: process.env.GEMINI_API_KEY ?? "",
