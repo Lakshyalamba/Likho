@@ -17,6 +17,13 @@ export const app = express();
 function getAllowedClientOrigins() {
   const origins = new Set([env.clientUrl]);
 
+  if (env.nodeEnv !== "production") {
+    origins.add("http://localhost:3000");
+    origins.add("http://localhost:3001");
+    origins.add("http://127.0.0.1:3000");
+    origins.add("http://127.0.0.1:3001");
+  }
+
   try {
     const clientUrl = new URL(env.clientUrl);
     origins.add(clientUrl.origin);
