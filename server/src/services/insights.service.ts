@@ -1,5 +1,4 @@
-import { Types } from "mongoose";
-import { NoteModel } from "../models/note.model";
+import { prisma } from "../config/prisma";
 
 interface TagCount {
   tag: string;
@@ -44,64 +43,99 @@ function getWeeklyActivityWindow() {
   };
 }
 
+function getMostUsedTags(notes: { tags: string[] }[]) {
+  const tagCounts = new Map<string, number>();
+
+  for (const note of notes) {
+    for (const tag of note.tags) {
+      tagCounts.set(tag, (tagCounts.get(tag) ?? 0) + 1);
+    }
+  }
+
+  return Array.from(tagCounts.entries())
+    .map<TagCount>(([tag, count]) => ({ tag, count }))
+    .sort((first, second) => second.count - first.count || first.tag.localeCompare(second.tag))
+    .slice(0, 10);
+}
+
 export async function getInsights(userId: string) {
-  const userObjectId = new Types.ObjectId(userId);
-  const baseFilter = { userId: userObjectId };
   const { start, days } = getWeeklyActivityWindow();
   const activityByDate = new Map(days.map((day) => [day.date, day]));
 
-  const [totalNotes, archivedNotes, recentlyEditedNotes, mostUsedTags, aiUsage, weeklyNotes] =
-    await Promise.all([
-      NoteModel.countDocuments(baseFilter),
-      NoteModel.countDocuments({ ...baseFilter, archived: true }),
-      NoteModel.find(baseFilter)
-        .sort({ updatedAt: -1 })
-        .limit(5)
-        .select("title category tags updatedAt archived")
-        .lean()
-        .exec(),
-      NoteModel.aggregate<TagCount>([
-        { $match: baseFilter },
-        { $unwind: "$tags" },
-        {
-          $group: {
-            _id: "$tags",
-            count: { $sum: 1 }
+  const [
+    totalNotes,
+    archivedNotes,
+    recentlyEditedNotes,
+    tagNotes,
+    aiUsage,
+    weeklyNotes
+  ] = await Promise.all([
+    prisma.note.count({
+      where: {
+        userId
+      }
+    }),
+    prisma.note.count({
+      where: {
+        userId,
+        archived: true
+      }
+    }),
+    prisma.note.findMany({
+      where: {
+        userId
+      },
+      orderBy: {
+        updatedAt: "desc"
+      },
+      take: 5,
+      select: {
+        id: true,
+        title: true,
+        category: true,
+        tags: true,
+        updatedAt: true,
+        archived: true
+      }
+    }),
+    prisma.note.findMany({
+      where: {
+        userId
+      },
+      select: {
+        tags: true
+      }
+    }),
+    prisma.note.aggregate({
+      where: {
+        userId
+      },
+      _sum: {
+        aiUsageCount: true
+      }
+    }),
+    prisma.note.findMany({
+      where: {
+        userId,
+        OR: [
+          {
+            createdAt: {
+              gte: start
+            }
+          },
+          {
+            updatedAt: {
+              gte: start
+            }
           }
-        },
-        { $sort: { count: -1, _id: 1 } },
-        { $limit: 10 },
-        {
-          $project: {
-            _id: 0,
-            tag: "$_id",
-            count: 1
-          }
-        }
-      ]),
-      NoteModel.aggregate<{ total: number }>([
-        { $match: baseFilter },
-        {
-          $group: {
-            _id: null,
-            total: { $sum: "$aiUsageCount" }
-          }
-        },
-        {
-          $project: {
-            _id: 0,
-            total: 1
-          }
-        }
-      ]),
-      NoteModel.find({
-        ...baseFilter,
-        $or: [{ createdAt: { $gte: start } }, { updatedAt: { $gte: start } }]
-      })
-        .select("createdAt updatedAt")
-        .lean()
-        .exec()
-    ]);
+        ]
+      },
+      select: {
+        createdAt: true,
+        updatedAt: true
+      }
+    })
+  ]);
 
   for (const note of weeklyNotes) {
     const createdKey = toDateKey(note.createdAt);
@@ -123,16 +157,9 @@ export async function getInsights(userId: string) {
   return {
     totalNotes,
     archivedNotes,
-    recentlyEditedNotes: recentlyEditedNotes.map((note) => ({
-      id: String(note._id),
-      title: note.title,
-      category: note.category,
-      tags: note.tags,
-      archived: note.archived,
-      updatedAt: note.updatedAt
-    })),
-    mostUsedTags,
-    aiUsageCount: aiUsage[0]?.total ?? 0,
+    recentlyEditedNotes,
+    mostUsedTags: getMostUsedTags(tagNotes),
+    aiUsageCount: aiUsage._sum.aiUsageCount ?? 0,
     weeklyActivitySummary: days
   };
 }
