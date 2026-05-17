@@ -1,6 +1,6 @@
 import { randomUUID } from "crypto";
-import { Types, type FilterQuery } from "mongoose";
-import { NoteModel, type Note, type NoteDocument } from "../models/note.model";
+import type { Note, Prisma } from "@prisma/client";
+import { prisma } from "../config/prisma";
 import { generateNoteAi } from "./ai.service";
 import { HttpError } from "../utils/http-error";
 import type {
@@ -9,45 +9,45 @@ import type {
   UpdateNoteInput
 } from "../validators/note.validator";
 
-export function serializeNote(note: NoteDocument) {
+export function serializeNote(note: Note) {
   return {
-    id: String(note._id),
+    id: note.id,
     title: note.title,
     content: note.content,
     tags: note.tags,
     category: note.category,
     archived: note.archived,
     isPublic: note.isPublic,
-    shareId: note.shareId,
-    aiSummary: note.aiSummary,
+    shareId: note.shareId ?? undefined,
+    aiSummary: note.aiSummary ?? undefined,
     actionItems: note.actionItems,
-    suggestedTitle: note.suggestedTitle,
+    suggestedTitle: note.suggestedTitle ?? undefined,
     aiUsageCount: note.aiUsageCount,
-    userId: String(note.userId),
+    userId: note.userId,
     createdAt: note.createdAt,
     updatedAt: note.updatedAt
   };
 }
 
-export function serializePublicNote(note: NoteDocument) {
+export function serializePublicNote(note: Note) {
   return {
-    id: String(note._id),
+    id: note.id,
     title: note.title,
     content: note.content,
     tags: note.tags,
     category: note.category,
     shareId: note.shareId,
-    aiSummary: note.aiSummary,
+    aiSummary: note.aiSummary ?? undefined,
     actionItems: note.actionItems,
-    suggestedTitle: note.suggestedTitle,
+    suggestedTitle: note.suggestedTitle ?? undefined,
     createdAt: note.createdAt,
     updatedAt: note.updatedAt
   };
 }
 
 function buildOwnedNoteFilter(userId: string, query?: NoteListQuery) {
-  const filter: FilterQuery<Note> = {
-    userId: new Types.ObjectId(userId)
+  const filter: Prisma.NoteWhereInput = {
+    userId
   };
 
   if (!query) {
@@ -59,7 +59,9 @@ function buildOwnedNoteFilter(userId: string, query?: NoteListQuery) {
   }
 
   if (query.tag) {
-    filter.tags = query.tag;
+    filter.tags = {
+      has: query.tag
+    };
   }
 
   if (query.category) {
@@ -67,12 +69,11 @@ function buildOwnedNoteFilter(userId: string, query?: NoteListQuery) {
   }
 
   if (query.search) {
-    const searchRegex = new RegExp(query.search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
-    filter.$or = [
-      { title: searchRegex },
-      { content: searchRegex },
-      { tags: searchRegex },
-      { category: searchRegex }
+    filter.OR = [
+      { title: { contains: query.search, mode: "insensitive" } },
+      { content: { contains: query.search, mode: "insensitive" } },
+      { tags: { has: query.search } },
+      { category: { contains: query.search, mode: "insensitive" } }
     ];
   }
 
@@ -84,12 +85,17 @@ export async function listNotes(userId: string, query: NoteListQuery) {
   const limit = query.limit ?? 20;
   const filter = buildOwnedNoteFilter(userId, query);
   const [notes, total] = await Promise.all([
-    NoteModel.find(filter)
-    .sort({ updatedAt: query.sort ?? -1 })
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .exec(),
-    NoteModel.countDocuments(filter)
+    prisma.note.findMany({
+      where: filter,
+      orderBy: {
+        updatedAt: query.sort === 1 ? "asc" : "desc"
+      },
+      skip: (page - 1) * limit,
+      take: limit
+    }),
+    prisma.note.count({
+      where: filter
+    })
   ]);
 
   return {
@@ -104,19 +110,27 @@ export async function listNotes(userId: string, query: NoteListQuery) {
 }
 
 export async function createNote(userId: string, input: CreateNoteInput) {
-  const note = await NoteModel.create({
-    ...input,
-    userId: new Types.ObjectId(userId)
+  const note = await prisma.note.create({
+    data: {
+      title: input.title,
+      content: input.content,
+      tags: input.tags ?? [],
+      category: input.category ?? "General",
+      archived: input.archived ?? false,
+      userId
+    }
   });
 
   return serializeNote(note);
 }
 
 export async function getNoteById(userId: string, noteId: string) {
-  const note = await NoteModel.findOne(buildOwnedNoteFilter(userId, undefined))
-    .where("_id")
-    .equals(noteId)
-    .exec();
+  const note = await prisma.note.findFirst({
+    where: {
+      id: noteId,
+      userId
+    }
+  });
 
   if (!note) {
     throw new HttpError(404, "Note not found");
@@ -126,36 +140,26 @@ export async function getNoteById(userId: string, noteId: string) {
 }
 
 export async function updateNote(userId: string, noteId: string, input: UpdateNoteInput) {
-  const note = await NoteModel.findOneAndUpdate(
-    {
-      ...buildOwnedNoteFilter(userId, undefined),
-      _id: noteId
-    },
-    {
-      $set: input
-    },
-    {
-      new: true,
-      runValidators: true
-    }
-  ).exec();
+  await assertOwnedNote(userId, noteId);
 
-  if (!note) {
-    throw new HttpError(404, "Note not found");
-  }
+  const note = await prisma.note.update({
+    where: {
+      id: noteId
+    },
+    data: input
+  });
 
   return serializeNote(note);
 }
 
 export async function deleteNote(userId: string, noteId: string) {
-  const note = await NoteModel.findOneAndDelete({
-    ...buildOwnedNoteFilter(userId, undefined),
-    _id: noteId
-  }).exec();
+  await assertOwnedNote(userId, noteId);
 
-  if (!note) {
-    throw new HttpError(404, "Note not found");
-  }
+  await prisma.note.delete({
+    where: {
+      id: noteId
+    }
+  });
 }
 
 export async function setNoteArchived(userId: string, noteId: string, archived: boolean) {
@@ -163,10 +167,12 @@ export async function setNoteArchived(userId: string, noteId: string, archived: 
 }
 
 export async function generateAiForNote(userId: string, noteId: string) {
-  const note = await NoteModel.findOne({
-    ...buildOwnedNoteFilter(userId, undefined),
-    _id: noteId
-  }).exec();
+  const note = await prisma.note.findFirst({
+    where: {
+      id: noteId,
+      userId
+    }
+  });
 
   if (!note) {
     throw new HttpError(404, "Note not found");
@@ -177,15 +183,22 @@ export async function generateAiForNote(userId: string, noteId: string) {
     content: note.content
   });
 
-  note.aiSummary = aiResult.summary;
-  note.actionItems = aiResult.action_items;
-  note.suggestedTitle = aiResult.suggested_title;
-  note.aiUsageCount = (note.aiUsageCount ?? 0) + 1;
-
-  await note.save();
+  const updatedNote = await prisma.note.update({
+    where: {
+      id: note.id
+    },
+    data: {
+      aiSummary: aiResult.summary,
+      actionItems: aiResult.action_items,
+      suggestedTitle: aiResult.suggested_title,
+      aiUsageCount: {
+        increment: 1
+      }
+    }
+  });
 
   return {
-    note: serializeNote(note),
+    note: serializeNote(updatedNote),
     ai: aiResult
   };
 }
@@ -193,7 +206,14 @@ export async function generateAiForNote(userId: string, noteId: string) {
 async function createUniqueShareId() {
   for (let attempt = 0; attempt < 5; attempt += 1) {
     const shareId = randomUUID();
-    const existingNote = await NoteModel.exists({ shareId });
+    const existingNote = await prisma.note.findUnique({
+      where: {
+        shareId
+      },
+      select: {
+        id: true
+      }
+    });
 
     if (!existingNote) {
       return shareId;
@@ -204,50 +224,81 @@ async function createUniqueShareId() {
 }
 
 export async function shareNote(userId: string, noteId: string) {
-  const note = await NoteModel.findOne({
-    ...buildOwnedNoteFilter(userId, undefined),
-    _id: noteId
-  }).exec();
+  const note = await prisma.note.findFirst({
+    where: {
+      id: noteId,
+      userId
+    }
+  });
 
   if (!note) {
     throw new HttpError(404, "Note not found");
   }
 
-  if (!note.shareId) {
-    note.shareId = await createUniqueShareId();
-  }
+  const updatedNote = await prisma.note.update({
+    where: {
+      id: note.id
+    },
+    data: {
+      shareId: note.shareId ?? (await createUniqueShareId()),
+      isPublic: true
+    }
+  });
 
-  note.isPublic = true;
-  await note.save();
-
-  return serializeNote(note);
+  return serializeNote(updatedNote);
 }
 
 export async function unshareNote(userId: string, noteId: string) {
-  const note = await NoteModel.findOne({
-    ...buildOwnedNoteFilter(userId, undefined),
-    _id: noteId
-  }).exec();
+  const note = await prisma.note.findFirst({
+    where: {
+      id: noteId,
+      userId
+    }
+  });
 
   if (!note) {
     throw new HttpError(404, "Note not found");
   }
 
-  note.isPublic = false;
-  await note.save();
+  const updatedNote = await prisma.note.update({
+    where: {
+      id: note.id
+    },
+    data: {
+      isPublic: false
+    }
+  });
 
-  return serializeNote(note);
+  return serializeNote(updatedNote);
 }
 
 export async function getPublicSharedNote(shareId: string) {
-  const note = await NoteModel.findOne({
-    shareId,
-    isPublic: true
-  }).exec();
+  const note = await prisma.note.findFirst({
+    where: {
+      shareId,
+      isPublic: true
+    }
+  });
 
   if (!note) {
     throw new HttpError(404, "Shared note not found");
   }
 
   return serializePublicNote(note);
+}
+
+async function assertOwnedNote(userId: string, noteId: string) {
+  const note = await prisma.note.findFirst({
+    where: {
+      id: noteId,
+      userId
+    },
+    select: {
+      id: true
+    }
+  });
+
+  if (!note) {
+    throw new HttpError(404, "Note not found");
+  }
 }
