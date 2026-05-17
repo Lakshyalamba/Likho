@@ -1,6 +1,6 @@
 # Peblo AI Notes
 
-Peblo AI Notes is a full-stack AI-powered notes workspace built for the Peblo Full Stack Developer Challenge. It combines secure authentication, a polished notes editor, AI-assisted note intelligence, public sharing, and productivity insights in a Next.js + Express + MongoDB application.
+Peblo AI Notes is a full-stack AI-powered notes workspace built for the Peblo Full Stack Developer Challenge. It combines secure authentication, a polished notes editor, AI-assisted note intelligence, public sharing, and productivity insights in a Next.js + Express + PostgreSQL application.
 
 ## Feature Checklist
 
@@ -33,8 +33,8 @@ Backend:
 - Node.js
 - Express
 - TypeScript
-- MongoDB
-- Mongoose
+- PostgreSQL
+- Prisma
 - JWT
 - bcrypt
 
@@ -48,7 +48,7 @@ The repository is an npm workspace with two apps:
 
 - `client` is the Next.js App Router frontend. It owns auth pages, protected app routes, the notes workspace, the public shared-note reader, theme state, toast notifications, and dashboard UI.
 - `server` is the Express REST API. It owns authentication, note ownership checks, AI generation, public sharing, and dashboard insight aggregation.
-- MongoDB stores users and notes.
+- PostgreSQL stores users and notes through Prisma.
 - JWT protects private APIs. The token payload contains only safe user identifiers.
 - Notes are scoped by `userId` in every private note query so users cannot access another user’s notes.
 - AI generation is abstracted behind a service. The frontend never receives the Gemini API key.
@@ -79,11 +79,13 @@ fullstack_challenge_lakshya/
     next.config.ts
     package.json
   server/
+    prisma/
+      migrations/
+      schema.prisma
     src/
       config/
       controllers/
       middleware/
-      models/
       routes/
       services/
       utils/
@@ -123,13 +125,13 @@ NEXT_PUBLIC_API_URL=http://localhost:5000/api
 Server env:
 
 ```env
-MONGO_URI=mongodb://127.0.0.1:27017/peblo_challenge
-JWT_SECRET=replace-with-a-long-random-secret
+DATABASE_URL="postgresql://postgres:password@localhost:5432/peblo_notes?schema=public"
+JWT_SECRET="replace-with-a-long-random-secret"
 PORT=5000
-JWT_EXPIRES_IN=7d
-NODE_ENV=development
-CLIENT_URL=http://localhost:3000
-GEMINI_API_KEY=
+JWT_EXPIRES_IN="7d"
+NODE_ENV="development"
+CLIENT_URL="http://localhost:3000"
+GEMINI_API_KEY=""
 GEMINI_MODEL=gemini-2.0-flash
 NVIDIA_API_KEY=
 NVIDIA_BASE_URL=https://integrate.api.nvidia.com/v1
@@ -143,11 +145,51 @@ DEMO_USER_PASSWORD=demo1234
 
 Never commit real database passwords, JWT secrets, Gemini API keys, NVIDIA API keys, or production credentials.
 
+## PostgreSQL Setup
+
+Use one of these database options:
+
+1. Local PostgreSQL installed on your machine.
+2. Docker PostgreSQL.
+3. A cloud PostgreSQL database such as Neon, Supabase, or Railway.
+
+Local PostgreSQL:
+
+```bash
+createdb peblo_notes
+```
+
+Docker PostgreSQL:
+
+```bash
+docker run --name peblo-postgres \
+  -e POSTGRES_USER=postgres \
+  -e POSTGRES_PASSWORD=password \
+  -e POSTGRES_DB=peblo_notes \
+  -p 5432:5432 \
+  -d postgres:16
+```
+
+Then set:
+
+```env
+DATABASE_URL="postgresql://postgres:password@localhost:5432/peblo_notes?schema=public"
+```
+
+Generate Prisma Client and apply migrations:
+
+```bash
+npm run prisma:generate --workspace server
+npm run prisma:migrate --workspace server
+```
+
 ## Running Locally
 
 Run both apps:
 
 ```bash
+npm run prisma:generate --workspace server
+npm run prisma:migrate --workspace server
 npm run dev
 ```
 
@@ -233,7 +275,7 @@ User:
 
 ```json
 {
-  "_id": "ObjectId",
+  "id": "cuid string",
   "name": "string",
   "email": "string",
   "passwordHash": "string",
@@ -246,8 +288,8 @@ Note:
 
 ```json
 {
-  "_id": "ObjectId",
-  "userId": "ObjectId",
+  "id": "cuid string",
+  "userId": "cuid string",
   "title": "string",
   "content": "string",
   "tags": ["string"],
@@ -395,7 +437,7 @@ This version supports collaboration through public share links. A note owner can
 - [ ] GitHub repository is accessible/public
 - [x] No real secrets are committed
 - [x] Env examples are present
-- [x] Clean clone can run locally with MongoDB and env files
+- [x] Clean clone can run locally with PostgreSQL and env files
 - [x] Frontend and backend are integrated
 - [ ] Demo video is recorded
 - [x] Sample outputs are included
