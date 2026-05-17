@@ -1,4 +1,3 @@
-import { Types } from "mongoose";
 import { HttpError } from "../utils/http-error";
 
 export interface NoteListQuery {
@@ -112,7 +111,7 @@ function optionalPositiveInteger(value: unknown, field: string, max?: number) {
 }
 
 export function validateNoteId(id: string) {
-  if (!Types.ObjectId.isValid(id)) {
+  if (!id || typeof id !== "string" || !/^[a-zA-Z0-9_-]+$/.test(id)) {
     throw new HttpError(400, "Invalid note id");
   }
 

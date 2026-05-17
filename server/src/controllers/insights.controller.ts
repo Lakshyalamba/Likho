@@ -8,7 +8,7 @@ function getAuthenticatedUserId(req: AuthenticatedRequest) {
     throw new HttpError(401, "Unauthorized");
   }
 
-  return String(req.user._id);
+  return req.user.id;
 }
 
 export async function getProductivityInsights(req: AuthenticatedRequest, res: Response) {
