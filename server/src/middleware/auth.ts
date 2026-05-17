@@ -1,9 +1,10 @@
 import type { NextFunction, Request, Response } from "express";
-import { UserModel, type UserDocument } from "../models/user.model";
+import type { AuthUser } from "../services/auth.service";
+import { prisma } from "../config/prisma";
 import { verifyToken } from "../utils/jwt";
 
 export interface AuthenticatedRequest extends Request {
-  user?: UserDocument;
+  user?: AuthUser;
 }
 
 export async function requireAuth(
@@ -24,7 +25,16 @@ export async function requireAuth(
     }
 
     const payload = verifyToken(token);
-    const user = await UserModel.findById(payload.userId);
+    const user = await prisma.user.findUnique({
+      where: {
+        id: payload.userId
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true
+      }
+    });
 
     if (!user) {
       res.status(401).json({

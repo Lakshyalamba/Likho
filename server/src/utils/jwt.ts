@@ -1,16 +1,15 @@
 import jwt from "jsonwebtoken";
 import { env } from "../config/env";
-import type { UserDocument } from "../models/user.model";
 
 export interface JwtPayload {
   userId: string;
   email: string;
 }
 
-export function signToken(user: UserDocument) {
+export function signToken(user: { id: string; email: string }) {
   return jwt.sign(
     {
-      userId: String(user._id),
+      userId: user.id,
       email: user.email
     },
     env.jwtSecret,
