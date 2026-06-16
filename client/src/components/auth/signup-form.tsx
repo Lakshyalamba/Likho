@@ -72,7 +72,7 @@ export function SignupForm() {
       <button
         type="submit"
         disabled={isSubmitting}
-        className="flex h-10 w-full items-center justify-center rounded-lg bg-slate-950 px-4 text-sm font-semibold text-white transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400 dark:bg-slate-100 dark:text-slate-950 dark:hover:bg-white"
+        className="flex h-11 w-full items-center justify-center rounded-xl bg-gradient-to-br from-slate-950 to-slate-800 px-4 text-sm font-semibold text-white shadow-lg shadow-slate-900/20 transition-all hover:-translate-y-0.5 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 dark:from-white dark:to-slate-200 dark:text-slate-950 dark:shadow-white/10"
       >
         {isSubmitting ? "Creating account..." : "Create account"}
       </button>

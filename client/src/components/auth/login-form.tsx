@@ -6,7 +6,7 @@ import { AuthFormField } from "@/components/auth/auth-form-field";
 import { useAuth } from "@/contexts/auth-context";
 import { useToast } from "@/contexts/toast-context";
 
-const DEMO_EMAIL = "demo@peblo.local";
+const DEMO_EMAIL = "demo@likho.local";
 const DEMO_PASSWORD = "demo1234";
 
 export function LoginForm() {
@@ -78,7 +78,7 @@ export function LoginForm() {
         type="button"
         onClick={handleUseDemoCredentials}
         disabled={isSubmitting}
-        className="flex h-10 w-full items-center justify-center rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-900 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:text-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:hover:bg-slate-900"
+        className="flex h-11 w-full items-center justify-center rounded-xl border border-white/30 bg-white/70 px-4 text-sm font-semibold text-slate-700 shadow-sm backdrop-blur transition-all hover:bg-white hover:text-slate-950 disabled:cursor-not-allowed disabled:text-slate-400 dark:border-white/10 dark:bg-slate-800/40 dark:text-slate-300 dark:hover:bg-slate-800/60 dark:hover:text-white"
       >
         Use demo credentials
       </button>
@@ -86,7 +86,7 @@ export function LoginForm() {
       <button
         type="submit"
         disabled={isSubmitting}
-        className="flex h-10 w-full items-center justify-center rounded-lg bg-slate-950 px-4 text-sm font-semibold text-white transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400 dark:bg-slate-100 dark:text-slate-950 dark:hover:bg-white"
+        className="flex h-11 w-full items-center justify-center rounded-xl bg-gradient-to-br from-slate-950 to-slate-800 px-4 text-sm font-semibold text-white shadow-lg shadow-slate-900/20 transition-all hover:-translate-y-0.5 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 dark:from-white dark:to-slate-200 dark:text-slate-950 dark:shadow-white/10"
       >
         {isSubmitting ? "Signing in..." : "Sign in"}
       </button>
