@@ -11,12 +11,14 @@ import {
 } from "react";
 import { apiRequest } from "@/lib/api";
 
-const TOKEN_STORAGE_KEY = "peblo_token";
+const TOKEN_STORAGE_KEY = "likho_token";
 
 export interface AuthUser {
   id: string;
   name: string;
   email: string;
+  username: string | null;
+  bio: string | null;
 }
 
 interface AuthResponse {
@@ -32,6 +34,7 @@ interface AuthContextValue {
   login(email: string, password: string): Promise<void>;
   signup(name: string, email: string, password: string): Promise<void>;
   logout(): void;
+  updateProfile(data: { name?: string; username?: string | null; bio?: string | null }): Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -52,6 +55,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(null);
     setUser(null);
   }, []);
+
+  const updateProfile = useCallback(
+    async (data: { name?: string; username?: string | null; bio?: string | null }) => {
+      const response = await apiRequest<{ user: AuthUser }>("/auth/profile", {
+        method: "PATCH",
+        body: JSON.stringify(data),
+        token
+      });
+      setUser(response.user);
+    },
+    [token]
+  );
 
   useEffect(() => {
     const storedToken = localStorage.getItem(TOKEN_STORAGE_KEY);
@@ -109,9 +124,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isAuthenticated: Boolean(user && token),
       login,
       signup,
-      logout
+      logout,
+      updateProfile
     }),
-    [isLoading, login, logout, signup, token, user]
+    [isLoading, login, logout, signup, updateProfile, token, user]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
