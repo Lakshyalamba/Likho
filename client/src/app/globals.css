@@ -45,6 +45,10 @@ body {
   animation: landing-fade-up 700ms ease-out both;
 }
 
+.landing-fade-delay {
+  animation-delay: 250ms;
+}
+
 @keyframes landing-fade-up {
   from {
     opacity: 0;
@@ -65,9 +69,75 @@ body {
   }
 }
 
+@keyframes card-float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes card-float-delayed {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-float {
+  animation: card-float 4s ease-in-out infinite;
+}
+
+.animate-float-delayed {
+  animation: card-float-delayed 4.5s ease-in-out 1s infinite;
+}
+
+.animate-scale-in {
+  animation: scale-in 600ms ease-out both;
+}
+
+.animate-slide-up {
+  animation: slide-up 600ms ease-out both;
+}
+
+.animate-stagger-1 { animation-delay: 100ms; }
+.animate-stagger-2 { animation-delay: 200ms; }
+.animate-stagger-3 { animation-delay: 300ms; }
+.animate-stagger-4 { animation-delay: 400ms; }
+.animate-stagger-5 { animation-delay: 500ms; }
+
 @media (prefers-reduced-motion: reduce) {
   .landing-paper-grid,
-  .landing-fade-up {
+  .landing-fade-up,
+  .animate-float,
+  .animate-float-delayed,
+  .animate-scale-in,
+  .animate-slide-up {
     animation: none;
   }
 }
