@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import type { AuthenticatedRequest } from "../middleware/auth";
-import { loginUser, serializeUser, signupUser } from "../services/auth.service";
-import { validateLoginBody, validateSignupBody } from "../validators/auth.validator";
+import { loginUser, serializeUser, signupUser, updateProfile } from "../services/auth.service";
+import { validateLoginBody, validateSignupBody, validateUpdateProfileBody } from "../validators/auth.validator";
 
 export async function signup(req: Request, res: Response) {
   const payload = validateSignupBody(req.body);
@@ -29,4 +29,16 @@ export function me(req: AuthenticatedRequest, res: Response) {
   res.json({
     user: serializeUser(req.user)
   });
+}
+
+export async function updateProfileHandler(req: AuthenticatedRequest, res: Response) {
+  if (!req.user) {
+    res.status(401).json({ success: false, message: "Unauthorized" });
+    return;
+  }
+
+  const payload = validateUpdateProfileBody(req.body);
+  const user = await updateProfile(req.user.id, payload);
+
+  res.json({ user });
 }

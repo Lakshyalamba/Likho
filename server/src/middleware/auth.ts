@@ -32,7 +32,9 @@ export async function requireAuth(
       select: {
         id: true,
         name: true,
-        email: true
+        email: true,
+        username: true,
+        bio: true
       }
     });
 

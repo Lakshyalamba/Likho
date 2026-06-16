@@ -57,3 +57,49 @@ export function validateLoginBody(body: unknown) {
     password
   };
 }
+
+const usernameRegex = /^[a-zA-Z0-9_-]+$/;
+
+function optionalString(value: unknown): string | null | undefined {
+  if (value === undefined) return undefined;
+  if (value === null || value === "") return null;
+  if (typeof value !== "string") {
+    throw new HttpError(400, "Invalid value type");
+  }
+  return value.trim();
+}
+
+export function validateUpdateProfileBody(body: unknown) {
+  const payload = asRecord(body);
+
+  if (Object.keys(payload).length === 0) {
+    throw new HttpError(400, "No fields to update");
+  }
+
+  const name = optionalString(payload.name);
+  const username = optionalString(payload.username);
+  const bio = optionalString(payload.bio);
+
+  if (name !== undefined && name !== null && name.length < 2) {
+    throw new HttpError(400, "Name must be at least 2 characters long");
+  }
+
+  if (username !== undefined && username !== null) {
+    if (username.length < 2) {
+      throw new HttpError(400, "Username must be at least 2 characters long");
+    }
+    if (!usernameRegex.test(username)) {
+      throw new HttpError(400, "Username can only contain letters, numbers, underscores, and hyphens");
+    }
+  }
+
+  if (bio !== undefined && bio !== null && bio.length > 500) {
+    throw new HttpError(400, "Bio must be under 500 characters");
+  }
+
+  return {
+    name: name ?? undefined,
+    username: username === undefined ? undefined : username,
+    bio: bio === undefined ? undefined : bio
+  } as { name?: string; username?: string | null; bio?: string | null };
+}

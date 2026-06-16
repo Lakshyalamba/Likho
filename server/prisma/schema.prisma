@@ -11,6 +11,8 @@ model User {
   id           String   @id @default(cuid())
   name         String
   email        String   @unique
+  username     String?  @unique
+  bio          String?
   passwordHash String
   notes        Note[]
   createdAt    DateTime @default(now())
