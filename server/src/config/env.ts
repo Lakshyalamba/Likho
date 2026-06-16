@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const DEFAULT_DATABASE_URL =
-  "postgresql://postgres:password@localhost:5432/peblo_notes?schema=public";
+  "postgresql://postgres:password@localhost:5432/likho_notes?schema=public";
 const DEFAULT_JWT_SECRET = "development-only-secret";
 const DEFAULT_CLIENT_URL = "http://localhost:3000";
 
@@ -72,6 +72,6 @@ export const env = {
   nvidiaBaseUrl: process.env.NVIDIA_BASE_URL ?? "https://integrate.api.nvidia.com/v1",
   nvidiaModel: process.env.NVIDIA_MODEL ?? "meta/llama-3.1-8b-instruct",
   demoUserName: process.env.DEMO_USER_NAME ?? "Demo User",
-  demoUserEmail: process.env.DEMO_USER_EMAIL ?? "demo@peblo.local",
+  demoUserEmail: process.env.DEMO_USER_EMAIL ?? "demo@likho.local",
   demoUserPassword: process.env.DEMO_USER_PASSWORD ?? "demo1234"
 };

@@ -21,7 +21,7 @@ Response:
 ```json
 {
   "status": "ok",
-  "service": "fullstack_challenge_lakshya-api",
+  "service": "likho-api",
   "timestamp": "2026-05-16T10:00:00.000Z"
 }
 ```
@@ -162,9 +162,9 @@ Authorization: Bearer <token>
 ```json
 {
   "ai": {
-    "summary": "The note captures the remaining polish tasks before the Peblo demo.",
+    "summary": "The note captures the remaining polish tasks before the Likho demo.",
     "action_items": ["Finalize README", "Record demo video"],
-    "suggested_title": "Peblo demo polish",
+    "suggested_title": "Likho demo polish",
     "usedMock": true
   }
 }

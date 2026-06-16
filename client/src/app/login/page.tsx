@@ -8,7 +8,7 @@ export default function LoginPage() {
       <AuthCard
         title="Welcome back"
         description="Sign in to manage your notes, AI summaries, sharing, and productivity insights."
-        footerText="New to Peblo Notes?"
+        footerText="New to Likho?"
         footerHref="/signup"
         footerLinkText="Create an account"
       >

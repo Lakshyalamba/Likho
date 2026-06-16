@@ -1,6 +1,6 @@
-# Peblo AI Notes
+# Likho
 
-Peblo AI Notes is a full-stack AI-powered notes workspace built for the Peblo Full Stack Developer Challenge. It combines secure authentication, a polished notes editor, AI-assisted note intelligence, public sharing, and productivity insights in a Next.js + Express + PostgreSQL application.
+Likho is a full-stack AI-powered notes workspace. It combines secure authentication, a polished notes editor, AI-assisted note intelligence, public sharing, and productivity insights in a Next.js + Express + PostgreSQL application.
 
 ## Feature Checklist
 
@@ -58,7 +58,7 @@ The repository is an npm workspace with two apps:
 ## Folder Structure
 
 ```text
-fullstack_challenge_lakshya/
+likho/
   client/
     src/
       app/
@@ -125,7 +125,7 @@ NEXT_PUBLIC_API_URL=http://localhost:5000/api
 Server env:
 
 ```env
-DATABASE_URL="postgresql://postgres:password@localhost:5432/peblo_notes?schema=public"
+DATABASE_URL="postgresql://postgres:password@localhost:5432/likho_notes?schema=public"
 JWT_SECRET="replace-with-a-long-random-secret"
 PORT=5000
 JWT_EXPIRES_IN="7d"
@@ -137,7 +137,7 @@ NVIDIA_API_KEY=
 NVIDIA_BASE_URL=https://integrate.api.nvidia.com/v1
 NVIDIA_MODEL=meta/llama-3.1-8b-instruct
 DEMO_USER_NAME=Demo User
-DEMO_USER_EMAIL=demo@peblo.local
+DEMO_USER_EMAIL=demo@likho.local
 DEMO_USER_PASSWORD=demo1234
 ```
 
@@ -156,16 +156,16 @@ Use one of these database options:
 Local PostgreSQL:
 
 ```bash
-createdb peblo_notes
+createdb likho_notes
 ```
 
 Docker PostgreSQL:
 
 ```bash
-docker run --name peblo-postgres \
+docker run --name likho-postgres \
   -e POSTGRES_USER=postgres \
   -e POSTGRES_PASSWORD=password \
-  -e POSTGRES_DB=peblo_notes \
+  -e POSTGRES_DB=likho_notes \
   -p 5432:5432 \
   -d postgres:16
 ```
@@ -173,7 +173,7 @@ docker run --name peblo-postgres \
 Then set:
 
 ```env
-DATABASE_URL="postgresql://postgres:password@localhost:5432/peblo_notes?schema=public"
+DATABASE_URL="postgresql://postgres:password@localhost:5432/likho_notes?schema=public"
 ```
 
 Generate Prisma Client and apply migrations:
@@ -350,15 +350,15 @@ Generate AI:
 {
   "note": {
     "id": "66f7e8a84b7f4e58f4d3a222",
-    "aiSummary": "The note captures the remaining polish tasks before the Peblo demo.",
+    "aiSummary": "The note captures the remaining polish tasks before the Likho demo.",
     "actionItems": ["Finalize README", "Record demo video"],
-    "suggestedTitle": "Peblo demo polish",
+    "suggestedTitle": "Likho demo polish",
     "aiUsageCount": 1
   },
   "ai": {
-    "summary": "The note captures the remaining polish tasks before the Peblo demo.",
+    "summary": "The note captures the remaining polish tasks before the Likho demo.",
     "action_items": ["Finalize README", "Record demo video"],
-    "suggested_title": "Peblo demo polish",
+    "suggested_title": "Likho demo polish",
     "usedMock": false
   }
 }
@@ -388,9 +388,9 @@ Public shared note:
     "tags": ["work", "demo"],
     "category": "Planning",
     "shareId": "f4c67e5d-8c4d-4f39-a47d-94fb0d96b982",
-    "aiSummary": "The note captures the remaining polish tasks before the Peblo demo.",
+    "aiSummary": "The note captures the remaining polish tasks before the Likho demo.",
     "actionItems": ["Finalize README", "Record demo video"],
-    "suggestedTitle": "Peblo demo polish",
+    "suggestedTitle": "Likho demo polish",
     "createdAt": "2026-05-16T10:00:00.000Z",
     "updatedAt": "2026-05-16T10:05:00.000Z"
   }
@@ -401,9 +401,9 @@ Public shared note:
 
 ```json
 {
-  "summary": "This note outlines the final work needed before submitting the Peblo challenge.",
+  "summary": "This note outlines the final work needed before submitting the Likho challenge.",
   "action_items": ["Update documentation", "Record the demo walkthrough", "Verify public sharing"],
-  "suggested_title": "Peblo submission checklist"
+  "suggested_title": "Likho submission checklist"
 }
 ```
 

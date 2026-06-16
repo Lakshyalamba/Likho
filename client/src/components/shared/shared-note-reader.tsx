@@ -51,7 +51,7 @@ export function SharedNoteReader({ shareId }: { shareId: string }) {
       <main className="flex min-h-screen items-center justify-center bg-[#f6f5f2] px-4 py-10 dark:bg-slate-950">
         <section className="w-full max-w-md rounded-2xl border border-slate-200 bg-white/95 p-6 text-center dark:border-slate-800 dark:bg-slate-900">
           <p className="text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-            Peblo Notes
+            Likho
           </p>
           <h1 className="mt-3 text-2xl font-semibold tracking-normal text-slate-950 dark:text-slate-50">
             This note is not available
@@ -78,7 +78,7 @@ export function SharedNoteReader({ shareId }: { shareId: string }) {
             href="/"
             className="text-xs font-semibold uppercase tracking-wide text-slate-500 transition-colors hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
           >
-            Shared via Peblo AI Notes
+            Shared via Likho
           </Link>
           <h1 className="mt-4 text-3xl font-semibold tracking-normal text-slate-950 dark:text-slate-50 sm:text-4xl">
             {note.title}

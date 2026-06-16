@@ -23,7 +23,7 @@ export function AppHeader({ userName, onLogout }: AppHeaderProps) {
       <div className="flex flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-            Peblo Notes
+            Likho
           </p>
           <nav className="mt-2 flex gap-2">
             {navItems.map((item) => {

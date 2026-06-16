@@ -17,7 +17,7 @@ interface ThemeContextValue {
   toggleTheme(): void;
 }
 
-const THEME_STORAGE_KEY = "peblo_theme";
+const THEME_STORAGE_KEY = "likho_theme";
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
 function getInitialTheme(): Theme {

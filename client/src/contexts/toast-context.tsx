@@ -58,7 +58,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={value}>
       {children}
-      <div className="fixed right-4 top-4 z-50 grid w-[calc(100vw-2rem)] max-w-sm gap-3">
+      <div className="fixed left-1/2 top-6 z-50 grid w-[calc(100vw-2rem)] max-w-sm -translate-x-1/2 gap-3 sm:top-8">
         {toasts.map((toast) => (
           <button
             key={toast.id}

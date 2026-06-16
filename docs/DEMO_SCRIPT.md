@@ -4,7 +4,7 @@ Target length: 5-10 minutes.
 
 ## 1. Intro
 
-Introduce Peblo AI Notes as a full-stack AI-powered notes workspace built for the Peblo Full Stack Developer Challenge.
+Introduce Likho as a full-stack AI-powered notes workspace.
 
 Mention the stack:
 - Next.js, React, TypeScript, Tailwind
@@ -17,7 +17,7 @@ Mention the stack:
 Show the landing page, then go to signup.
 
 Create a new account or use the demo credentials from the login page:
-- Email: `demo@peblo.local`
+- Email: `demo@likho.local`
 - Password: `demo1234`
 
 Point out protected routes and session restore.

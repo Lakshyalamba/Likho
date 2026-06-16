@@ -5,8 +5,8 @@ import { ToastProvider } from "@/contexts/toast-context";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Peblo Full Stack Challenge",
-  description: "Full-stack challenge starter built with Next.js and Express."
+  title: "Likho",
+  description: "AI-powered notes workspace built with Next.js and Express."
 };
 
 export default function RootLayout({
