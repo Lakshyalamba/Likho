@@ -17,7 +17,7 @@ export default function NotesPage() {
   return (
     <ProtectedRoute>
       {token && user ? (
-        <NotesWorkspace token={token} userName={user.name} onLogout={handleLogout} />
+        <NotesWorkspace token={token} userName={user.name} userEmail={user.email} onLogout={handleLogout} />
       ) : null}
     </ProtectedRoute>
   );

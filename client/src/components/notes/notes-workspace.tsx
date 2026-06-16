@@ -24,6 +24,7 @@ type SaveStatus = "idle" | "saving" | "saved" | "error";
 interface NotesWorkspaceProps {
   token: string;
   userName: string;
+  userEmail?: string;
   onLogout(): void;
 }
 
@@ -55,7 +56,7 @@ function toPayload(draft: DraftNote): NotePayload {
   };
 }
 
-export function NotesWorkspace({ token, userName, onLogout }: NotesWorkspaceProps) {
+export function NotesWorkspace({ token, userName, userEmail, onLogout }: NotesWorkspaceProps) {
   const { showToast } = useToast();
   const [notes, setNotes] = useState<Note[]>([]);
   const [pagination, setPagination] = useState<PaginationMeta>({
@@ -380,7 +381,7 @@ export function NotesWorkspace({ token, userName, onLogout }: NotesWorkspaceProp
       showToast({
         title: result.ai.usedMock ? "Fallback summary generated" : "AI summary generated",
         description: result.ai.usedMock
-          ? "Gemini is unavailable, so Peblo used its local fallback response."
+          ? "Gemini is unavailable, so Likho used its local fallback response."
           : "Summary and action items are ready.",
         type: "success"
       });
@@ -470,6 +471,7 @@ export function NotesWorkspace({ token, userName, onLogout }: NotesWorkspaceProp
   return (
     <AppShell
       userName={userName}
+      userEmail={userEmail}
       onLogout={onLogout}
       onNewNote={handleCreateNote}
       isCreatingNote={isCreating}
