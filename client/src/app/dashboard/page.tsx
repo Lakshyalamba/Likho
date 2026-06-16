@@ -17,7 +17,7 @@ export default function DashboardPage() {
   return (
     <ProtectedRoute>
       {token && user ? (
-        <ProductivityDashboard token={token} userName={user.name} onLogout={handleLogout} />
+        <ProductivityDashboard token={token} userName={user.name} userEmail={user.email} onLogout={handleLogout} />
       ) : null}
     </ProtectedRoute>
   );
