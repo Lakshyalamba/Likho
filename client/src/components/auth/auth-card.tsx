@@ -26,7 +26,7 @@ export function AuthCard({
       <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(rgba(15,23,42,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.03)_1px,transparent_1px)] bg-[length:44px_44px] dark:bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)]" />
 
       <Link href="/" className="absolute left-4 top-4 z-10 inline-flex items-center gap-1.5 rounded-xl border border-white/30 bg-white/50 px-3 py-2 text-sm font-medium text-slate-600 shadow-sm shadow-black/[0.03] backdrop-blur-2xl transition hover:border-white/50 hover:bg-white/70 hover:text-slate-950 dark:border-white/10 dark:bg-slate-900/50 dark:text-slate-400 dark:hover:border-white/20 dark:hover:bg-slate-900/70 dark:hover:text-white sm:left-8 sm:top-8">
-        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
           <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
         </svg>
         Back to home

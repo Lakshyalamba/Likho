@@ -106,12 +106,13 @@ export function ProfilePage({ user, onLogout }: Props) {
             <label className="block">
               <span className="text-sm font-medium text-slate-800 dark:text-slate-100">Username</span>
               <div className="relative mt-2">
-                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400 dark:text-slate-500">@</span>
+                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400 dark:text-slate-500" aria-hidden="true">@</span>
                 <input
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="username"
+                  pattern="[a-zA-Z0-9_-]*"
                   className="h-11 w-full rounded-xl border border-white/40 bg-white/70 pl-7 pr-10 text-sm text-slate-950 shadow-sm outline-none transition-all placeholder:text-slate-400 focus:border-slate-400 focus:bg-white focus:ring-4 focus:ring-slate-200/50 dark:border-white/10 dark:bg-slate-800/40 dark:text-slate-50 dark:placeholder:text-slate-500 dark:focus:border-slate-500 dark:focus:bg-slate-800/60 dark:focus:ring-slate-700/30"
                 />
                 {user.username ? (
@@ -143,6 +144,7 @@ export function ProfilePage({ user, onLogout }: Props) {
 
           {message ? (
             <div
+              role="alert"
               className={`mt-5 rounded-xl px-4 py-3 text-sm ${
                 message.type === "success"
                   ? "border border-emerald-200/50 bg-emerald-50/80 text-emerald-700 backdrop-blur dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-200"

@@ -7,7 +7,7 @@ import { useAuth } from "@/contexts/auth-context";
 
 export default function ProfileRoute() {
   const router = useRouter();
-  const { token, user, logout } = useAuth();
+  const { user, logout } = useAuth();
 
   function handleLogout() {
     logout();
@@ -16,7 +16,7 @@ export default function ProfileRoute() {
 
   return (
     <ProtectedRoute>
-      {token && user ? (
+      {user ? (
         <ProfilePage user={user} onLogout={handleLogout} />
       ) : null}
     </ProtectedRoute>
