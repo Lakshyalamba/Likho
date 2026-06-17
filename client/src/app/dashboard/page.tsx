@@ -14,9 +14,11 @@ export default function DashboardPage() {
     router.replace("/login");
   }
 
+  if (!token || !user) return null;
+
   return (
     <ProtectedRoute>
-      <ProductivityDashboard token={token!} userName={user!.name} userEmail={user!.email} onLogout={handleLogout} />
+      <ProductivityDashboard token={token} userName={user.name} userEmail={user.email} onLogout={handleLogout} />
     </ProtectedRoute>
   );
 }
