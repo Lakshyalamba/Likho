@@ -1,5 +1,12 @@
 import { apiRequest } from "@/lib/api";
 
+export const DEFAULT_DRAFT_NOTE = {
+  title: "",
+  content: " ",
+  tags: [] as string[],
+  category: "General"
+} as const;
+
 export interface Note {
   id: string;
   title: string;

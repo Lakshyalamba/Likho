@@ -94,10 +94,18 @@ export default function Home() {
           <button
             type="button"
             onClick={toggleTheme}
-            className="grid h-9 w-9 place-items-center rounded-lg border border-slate-300 bg-white/75 text-sm transition hover:bg-white dark:border-slate-700 dark:bg-slate-900/75 dark:hover:bg-slate-900"
-            aria-label="Toggle theme"
+            className="grid h-9 w-9 place-items-center rounded-lg border border-slate-300 bg-white/75 transition hover:bg-white dark:border-slate-700 dark:bg-slate-900/75 dark:hover:bg-slate-900"
+            aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
           >
-            {theme === "dark" ? "\u2600" : "\u263E"}
+            {theme === "dark" ? (
+              <svg className="h-4 w-4 text-slate-600 dark:text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
+              </svg>
+            ) : (
+              <svg className="h-4 w-4 text-slate-600 dark:text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
+              </svg>
+            )}
           </button>
           <Link
             href="/login"
@@ -143,7 +151,7 @@ export default function Home() {
                   className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-950 px-7 py-3.5 text-sm font-semibold text-white shadow-xl shadow-slate-900/20 transition hover:-translate-y-0.5 hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200"
                 >
                   Create your workspace
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>
                 </Link>
@@ -269,7 +277,7 @@ export default function Home() {
                 className="animate-scale-in flex flex-col rounded-2xl border border-slate-200 bg-[#fbfcf8] p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg dark:border-slate-800 dark:bg-slate-950"
                 style={{ animationDelay: `${i * 150}ms` }}
               >
-                <svg className="h-6 w-6 text-emerald-500" fill="currentColor" viewBox="0 0 24 24">
+                <svg className="h-6 w-6 text-emerald-500" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10H14.017zM0 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151C7.546 6.068 5.983 8.789 5.983 11H10v10H0z" />
                 </svg>
                 <p className="mt-4 flex-1 text-sm leading-6 text-slate-600 dark:text-slate-300">
@@ -307,7 +315,7 @@ export default function Home() {
               >
                 <summary className="flex cursor-pointer items-center justify-between text-sm font-semibold text-slate-950 dark:text-white">
                   {faq.q}
-                  <svg className="h-5 w-5 shrink-0 text-slate-400 transition group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <svg className="h-5 w-5 shrink-0 text-slate-400 transition group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                   </svg>
                 </summary>

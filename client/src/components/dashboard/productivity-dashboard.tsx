@@ -87,10 +87,10 @@ function ActivityChart({ days }: { days: WeeklyActivityDay[] }) {
             <div key={day.date} className="flex h-full min-w-0 flex-1 flex-col justify-end gap-1.5">
               <div className="flex flex-1 flex-col-reverse items-center gap-0.5" style={{ height: `${totalH}%` }}>
                 {day.created > 0 ? (
-                  <div className="w-full rounded-t-sm bg-emerald-500 transition-all hover:opacity-80 dark:bg-emerald-400" style={{ height: `${(day.created / day.total) * 100}%`, minHeight: day.created > 0 ? 4 : 0 }} title={`${day.created} created`} />
+                  <div className="w-full rounded-t-sm bg-emerald-500 transition-all hover:opacity-80 dark:bg-emerald-400" style={{ height: `${(day.created / day.total) * 100}%`, minHeight: day.created > 0 ? 4 : 0 }} title={`${day.created} created`} aria-label={`${day.created} notes created on ${formatDate(day.date)}`} />
                 ) : null}
                 {day.updated > 0 ? (
-                  <div className="w-full rounded-t-sm bg-slate-500 transition-all hover:opacity-80 dark:bg-slate-400" style={{ height: `${(day.updated / day.total) * 100}%`, minHeight: day.updated > 0 ? 4 : 0 }} title={`${day.updated} updated`} />
+                  <div className="w-full rounded-t-sm bg-slate-500 transition-all hover:opacity-80 dark:bg-slate-400" style={{ height: `${(day.updated / day.total) * 100}%`, minHeight: day.updated > 0 ? 4 : 0 }} title={`${day.updated} updated`} aria-label={`${day.updated} notes updated on ${formatDate(day.date)}`} />
                 ) : null}
               </div>
               <div className="text-center">
@@ -114,7 +114,7 @@ function DonutChart({ active, archived }: { active: number; archived: number }) 
 
   return (
     <div className="flex items-center gap-5">
-      <svg width="90" height="90" className="-rotate-90 shrink-0">
+      <svg width="90" height="90" className="-rotate-90 shrink-0" aria-label={`Note distribution: ${active} active, ${archived} archived`}>
         <circle cx="45" cy="45" r={r} fill="none" stroke="rgb(226 232 240)" strokeWidth="8" className="dark:stroke-slate-800" />
         <circle cx="45" cy="45" r={r} fill="none" stroke="rgb(15 23 42)" strokeWidth="8" strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round" className="dark:stroke-slate-100" />
       </svg>
@@ -137,17 +137,27 @@ export function ProductivityDashboard({ token, userName, userEmail, onLogout }: 
   const [error, setError] = useState("");
 
   useEffect(() => {
+    let cancelled = false;
+
     getProductivityInsights(token)
       .then((data) => {
-        setInsights(data);
-        setError("");
+        if (!cancelled) {
+          setInsights(data);
+          setError("");
+        }
       })
       .catch((err) => {
-        setError(err instanceof Error ? err.message : "Unable to load dashboard");
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : "Unable to load dashboard");
+        }
       })
       .finally(() => {
-        setIsLoading(false);
+        if (!cancelled) {
+          setIsLoading(false);
+        }
       });
+
+    return () => { cancelled = true; };
   }, [token]);
 
   const mostUsedTag = useMemo(() => insights?.mostUsedTags[0], [insights]);
@@ -213,7 +223,7 @@ export function ProductivityDashboard({ token, userName, userEmail, onLogout }: 
     return (
       <AppShell userName={userName} userEmail={userEmail} onLogout={onLogout}>
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-          <div className="rounded-2xl border border-red-200/50 bg-red-50/80 p-6 text-sm text-red-700 backdrop-blur-sm dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-200">
+          <div role="alert" className="rounded-2xl border border-red-200/50 bg-red-50/80 p-6 text-sm text-red-700 backdrop-blur-sm dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-200">
             {error || "Unable to load dashboard"}
           </div>
         </div>
@@ -222,11 +232,11 @@ export function ProductivityDashboard({ token, userName, userEmail, onLogout }: 
   }
 
   if (insights.totalNotes === 0) {
-    return <AppShell userName={userName} onLogout={onLogout}>{emptyState}</AppShell>;
+    return <AppShell userName={userName} userEmail={userEmail} onLogout={onLogout}>{emptyState}</AppShell>;
   }
 
   return (
-    <AppShell userName={userName} onLogout={onLogout}>
+    <AppShell userName={userName} userEmail={userEmail} onLogout={onLogout}>
       <section className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -261,16 +271,16 @@ export function ProductivityDashboard({ token, userName, userEmail, onLogout }: 
 
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <StatCard label="Total notes" value={insights.totalNotes} icon={
-            <svg className="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>
+            <svg className="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>
           } sub={`${activeNotes} active, ${insights.archivedNotes} archived`} />
           <StatCard label="This week" value={insights.weeklyActivitySummary.reduce((s, d) => s + d.total, 0)} icon={
-            <svg className="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" /></svg>
+            <svg className="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" /></svg>
           } sub={`${streak.activeDays} active days`} />
           <StatCard label="AI runs" value={insights.aiUsageCount} icon={
-            <svg className="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" /></svg>
+            <svg className="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" /></svg>
           } sub={insights.aiUsageCount > 0 ? "summaries & action items" : "generate your first summary"} />
           <StatCard label="Top tag" value={mostUsedTag ? mostUsedTag.tag : "\u2014"} icon={
-            <svg className="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" /><path strokeLinecap="round" strokeLinejoin="round" d="M6 6h.008v.008H6V6z" /></svg>
+            <svg className="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" /><path strokeLinecap="round" strokeLinejoin="round" d="M6 6h.008v.008H6V6z" /></svg>
           } sub={mostUsedTag ? `${mostUsedTag.count} notes tagged` : undefined} />
         </div>
 
@@ -386,6 +396,7 @@ export function ProductivityDashboard({ token, userName, userEmail, onLogout }: 
                           {note.tags.slice(0, 4).map((tag) => (
                             <span key={tag} className="rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-300">{tag}</span>
                           ))}
+                          {note.tags.length > 4 ? <span className="text-xs text-slate-400 dark:text-slate-500">+{note.tags.length - 4} more</span> : null}
                         </>
                       ) : null}
                     </div>

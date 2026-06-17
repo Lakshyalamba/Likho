@@ -76,21 +76,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    setToken(storedToken);
-
     apiRequest<{ user: AuthUser }>("/auth/me", {
       token: storedToken
     })
       .then((response) => {
+        setToken(storedToken);
         setUser(response.user);
       })
-      .catch(() => {
-        logout();
+      .catch((err) => {
+        localStorage.removeItem(TOKEN_STORAGE_KEY);
+        if (err instanceof TypeError) {
+          console.warn("Auth session check failed due to network error — keeping session for retry");
+          setToken(storedToken);
+        }
       })
       .finally(() => {
         setIsLoading(false);
       });
-  }, [logout]);
+  }, []);
 
   const login = useCallback(
     async (email: string, password: string) => {

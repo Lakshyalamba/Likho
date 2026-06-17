@@ -203,10 +203,13 @@ export function NotesWorkspace({ token, userName, userEmail, onLogout }: NotesWo
       return;
     }
 
+    draftVersionRef.current = 0;
     setDraft(toDraft(note));
     setIsDirty(false);
     setSaveStatus("saved");
   }, [selectedNoteId]);
+
+  const saveDraftRef = useRef<() => Promise<void>>(async () => {});
 
   useEffect(() => {
     if (!selectedNote || !isDirty) {
@@ -240,23 +243,40 @@ export function NotesWorkspace({ token, userName, userEmail, onLogout }: NotesWo
     return () => window.clearTimeout(timeoutId);
   }, [draft, isDirty, replaceNote, selectedNote, token]);
 
+  saveDraftRef.current = async () => {
+    if (!selectedNote || !isDirty) return;
+    try {
+      const updatedNote = await updateNote(token, selectedNote.id, toPayload(draft));
+      replaceNote(updatedNote);
+      setIsDirty(false);
+      setSaveStatus("saved");
+    } catch {
+      setSaveStatus("error");
+    }
+  };
+
+  const handleNoteSwitch = useCallback(async (noteId: string | null) => {
+    if (selectedNoteRef.current && isDirty) {
+      await saveDraftRef.current();
+    }
+    setSelectedNoteId(noteId);
+  }, [isDirty]);
+
   async function handleCreateNote() {
     setIsCreating(true);
     setError("");
 
     try {
       const note = await createNote(token);
+      setNotes((currentNotes) => [note, ...currentNotes]);
+      setPagination((currentPagination) => ({
+        ...currentPagination,
+        total: currentPagination.total + 1
+      }));
+      setSelectedNoteId(note.id);
       if (showArchived) {
         setShowArchived(false);
-        setNotes([note]);
-      } else {
-        setNotes((currentNotes) => [note, ...currentNotes]);
-        setPagination((currentPagination) => ({
-          ...currentPagination,
-          total: currentPagination.total + 1
-        }));
       }
-      setSelectedNoteId(note.id);
       showToast({ title: "Note created", description: "Start writing and changes will autosave.", type: "success" });
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unable to create note";
@@ -626,11 +646,11 @@ export function NotesWorkspace({ token, userName, userEmail, onLogout }: NotesWo
             ) : (
               <div>
                 <div className="p-2">
-                  {notes.map((note) => (
+                    {notes.map((note) => (
                     <button
                       key={note.id}
                       type="button"
-                      onClick={() => setSelectedNoteId(note.id)}
+                      onClick={() => void handleNoteSwitch(note.id)}
                       className={`mb-1 flex h-9 w-full min-w-0 items-center justify-between gap-2 rounded-lg px-3 text-left text-sm transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 ${
                         selectedNoteId === note.id
                           ? "bg-slate-100 text-slate-950 dark:bg-slate-800 dark:text-slate-50"
@@ -692,7 +712,7 @@ export function NotesWorkspace({ token, userName, userEmail, onLogout }: NotesWo
           ) : null}
 
           {error ? (
-            <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-200">
+            <div role="alert" className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-200">
               {error}
             </div>
           ) : null}
@@ -785,18 +805,24 @@ export function NotesWorkspace({ token, userName, userEmail, onLogout }: NotesWo
               </div>
 
               <div className="grid gap-4 border-b border-slate-200 p-4 dark:border-slate-800 sm:grid-cols-[1fr_220px] sm:p-6">
-                <input
-                  value={draft.title}
-                  onChange={(event) => updateDraft("title", event.target.value)}
-                  placeholder="Note title"
-                  className="min-w-0 border-0 bg-transparent text-4xl font-semibold tracking-normal text-slate-950 outline-none placeholder:text-slate-300 dark:text-slate-50 sm:text-5xl"
-                />
-                <input
-                  value={draft.category}
-                  onChange={(event) => updateDraft("category", event.target.value)}
-                  placeholder="Category"
-                  className="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none transition-colors placeholder:text-slate-400 focus:border-slate-500 focus:ring-2 focus:ring-slate-300/70 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-50"
-                />
+                <label className="min-w-0">
+                  <span className="sr-only">Note title</span>
+                  <input
+                    value={draft.title}
+                    onChange={(event) => updateDraft("title", event.target.value)}
+                    placeholder="Note title"
+                    className="min-w-0 border-0 bg-transparent text-4xl font-semibold tracking-normal text-slate-950 outline-none placeholder:text-slate-300 dark:text-slate-50 sm:text-5xl"
+                  />
+                </label>
+                <label>
+                  <span className="sr-only">Category</span>
+                  <input
+                    value={draft.category}
+                    onChange={(event) => updateDraft("category", event.target.value)}
+                    placeholder="Category"
+                    className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none transition-colors placeholder:text-slate-400 focus:border-slate-500 focus:ring-2 focus:ring-slate-300/70 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-50"
+                  />
+                </label>
               </div>
 
               <div className="border-b border-slate-200 dark:border-slate-800 px-4 py-3 sm:px-6">
@@ -930,13 +956,21 @@ export function NotesWorkspace({ token, userName, userEmail, onLogout }: NotesWo
       </section>
 
       {notePendingDelete ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 px-4 backdrop-blur-sm">
-          <section className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-800 dark:bg-slate-900">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 px-4 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="delete-modal-title"
+          onKeyDown={(e) => {
+            if (e.key === "Escape") setNotePendingDelete(null);
+          }}
+        >
+          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-800 dark:bg-slate-900">
             <p className="text-xs font-semibold uppercase tracking-wide text-red-600 dark:text-red-300">
               Delete note
             </p>
-            <h2 className="mt-3 text-xl font-semibold tracking-normal text-slate-950 dark:text-slate-50">
-              Delete “{notePendingDelete.title}”?
+            <h2 id="delete-modal-title" className="mt-3 text-xl font-semibold tracking-normal text-slate-950 dark:text-slate-50">
+              Delete &ldquo;{notePendingDelete.title}&rdquo;?
             </h2>
             <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
               This permanently removes the note and its AI results. This action cannot be undone.
@@ -960,7 +994,7 @@ export function NotesWorkspace({ token, userName, userEmail, onLogout }: NotesWo
                 {isDeleting ? "Deleting..." : "Delete permanently"}
               </button>
             </div>
-          </section>
+          </div>
         </div>
       ) : null}
     </AppShell>
