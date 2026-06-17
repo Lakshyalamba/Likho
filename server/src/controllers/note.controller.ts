@@ -72,13 +72,9 @@ export async function deleteNoteById(req: AuthenticatedRequest, res: Response) {
 export async function archiveNote(req: AuthenticatedRequest, res: Response) {
   const userId = getAuthenticatedUserId(req);
   const noteId = validateNoteId(req.params.id);
-  const archived =
-    typeof req.body === "object" &&
-    req.body !== null &&
-    "archived" in req.body &&
-    typeof req.body.archived === "boolean"
-      ? req.body.archived
-      : true;
+  const archived = req.body && typeof req.body === "object" && "archived" in req.body
+    ? req.body.archived === true
+    : true;
   const note = await setNoteArchived(userId, noteId, archived);
 
   res.json({ note });

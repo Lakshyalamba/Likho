@@ -3,6 +3,7 @@ import express from "express";
 import helmet from "helmet";
 import morgan from "morgan";
 import { env } from "./config/env";
+import { HttpError } from "./utils/http-error";
 import { errorHandler } from "./middleware/error-handler";
 import { aiRateLimiter, authRateLimiter } from "./middleware/rate-limiters";
 import { authRouter } from "./routes/auth.routes";
@@ -69,4 +70,5 @@ app.use("/api/insights", insightsRouter);
 app.use("/api/shared", sharedNoteRouter);
 app.use("/api/gemini", geminiRouter);
 
+app.use((_req, _res, next) => next(new HttpError(404, "Route not found")));
 app.use(errorHandler);

@@ -56,7 +56,13 @@ function requiredText(value: unknown, field: string) {
     throw new HttpError(400, `${field} is required`);
   }
 
-  return value.trim();
+  const trimmed = value.trim();
+
+  if (trimmed.length === 0) {
+    throw new HttpError(400, `${field} cannot be empty`);
+  }
+
+  return trimmed;
 }
 
 function optionalStringArray(value: unknown, field: string) {

@@ -32,16 +32,28 @@ function getMockNoteAiResult(input: GenerateNoteAiInput): NoteAiResult {
   };
 }
 
+function buildNoteAiPrompt(input: GenerateNoteAiInput) {
+  const truncated = input.content.slice(0, 10000);
+  return `
+You are an assistant inside a productivity notes app.
+Generate useful note intelligence from the user's note.
+Return only valid JSON with:
+- "summary": a concise 1-3 sentence summary
+- "action_items": 0-5 concrete next steps as strings
+- "suggested_title": a clear short title
+
+Note title: ${input.title}
+Note content:
+${truncated}
+`;
+}
+
 function parseGeminiJson(text: string): Omit<NoteAiResult, "usedMock"> {
   const trimmedText = text.trim();
   const fencedMatch = trimmedText.match(/```(?:json)?\s*([\s\S]*?)```/i);
   const unfencedMatch = trimmedText.match(/\{[\s\S]*\}/);
   const jsonText = (fencedMatch?.[1] ?? unfencedMatch?.[0] ?? trimmedText).trim();
-  const parsed = JSON.parse(jsonText) as {
-    summary?: unknown;
-    action_items?: unknown;
-    suggested_title?: unknown;
-  };
+  const parsed = JSON.parse(jsonText) as Record<string, unknown>;
 
   if (
     typeof parsed.summary !== "string" ||
@@ -53,21 +65,6 @@ function parseGeminiJson(text: string): Omit<NoteAiResult, "usedMock"> {
   }
 
   return normalizeNoteAiResult(parsed.summary, parsed.action_items, parsed.suggested_title);
-}
-
-function buildNoteAiPrompt(input: GenerateNoteAiInput) {
-  return `
-You are an assistant inside a productivity notes app.
-Generate useful note intelligence from the user's note.
-Return only valid JSON with:
-- "summary": a concise 1-3 sentence summary
-- "action_items": 0-5 concrete next steps as strings
-- "suggested_title": a clear short title
-
-Note title: ${input.title}
-Note content:
-${input.content}
-`;
 }
 
 export async function generateNoteAi(input: GenerateNoteAiInput): Promise<NoteAiResult> {

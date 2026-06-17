@@ -7,22 +7,23 @@ async function bootstrap() {
   await connectDatabase();
   await ensureDemoUser();
 
-  app.listen(env.port, () => {
+  const server = app.listen(env.port, () => {
     console.log(`Server running on port ${env.port}`);
   });
+
+  function shutdown(signal: string) {
+    console.log(`\nReceived ${signal}, shutting down gracefully...`);
+    server.close(async () => {
+      await prisma.$disconnect();
+      process.exit(0);
+    });
+  }
+
+  process.on("SIGINT", () => shutdown("SIGINT"));
+  process.on("SIGTERM", () => shutdown("SIGTERM"));
 }
 
 bootstrap().catch((error) => {
   console.error("Failed to start server", error);
   process.exit(1);
-});
-
-process.on("SIGINT", async () => {
-  await prisma.$disconnect();
-  process.exit(0);
-});
-
-process.on("SIGTERM", async () => {
-  await prisma.$disconnect();
-  process.exit(0);
 });

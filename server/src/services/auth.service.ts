@@ -62,22 +62,14 @@ export async function signupUser(input: {
 
 export async function ensureDemoUser() {
   const email = env.demoUserEmail.toLowerCase();
-  const passwordHash = await bcrypt.hash(env.demoUserPassword, 12);
+  const existing = await prisma.user.findUnique({ where: { email }, select: { id: true } });
 
-  await prisma.user.upsert({
-    where: {
-      email
-    },
-    update: {
-      name: env.demoUserName,
-      passwordHash
-    },
-    create: {
-      name: env.demoUserName,
-      email,
-      passwordHash
-    }
-  });
+  if (!existing) {
+    const passwordHash = await bcrypt.hash(env.demoUserPassword, 12);
+    await prisma.user.create({
+      data: { name: env.demoUserName, email, passwordHash }
+    });
+  }
 
   console.log(`Demo account ready: ${email}`);
 }
@@ -96,20 +88,20 @@ export async function updateProfile(
     throw new HttpError(400, "Name must be at least 2 characters");
   }
 
-  if (input.username !== undefined && input.username !== null) {
-    const existing = await prisma.user.findUnique({ where: { username: input.username } });
-    if (existing && existing.id !== userId) {
+  try {
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data,
+      select: { id: true, name: true, email: true, username: true, bio: true }
+    });
+
+    return serializeUser(user);
+  } catch (error: unknown) {
+    if ((error as Record<string, unknown>)?.code === "P2002") {
       throw new HttpError(409, "Username is already taken");
     }
+    throw error;
   }
-
-  const user = await prisma.user.update({
-    where: { id: userId },
-    data,
-    select: { id: true, name: true, email: true, username: true, bio: true }
-  });
-
-  return serializeUser(user);
 }
 
 export async function loginUser(input: {
